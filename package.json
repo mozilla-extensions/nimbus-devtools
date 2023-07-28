@@ -1,0 +1,15 @@
+{
+  "name": "nimbus-devtools",
+  "version": "1.0.0",
+  "description": "nimbus-devtools",
+  "license": "MPL-2.0",
+  "private": false,
+  "repository": "https://github.com/mozilla-extensions/nimbus-devtools",
+  "scripts": {
+    "build": "web-ext build -s extension --overwrite-dest --filename nimbus-devtools.xpi",
+    "lint": "web-ext lint -s extension"
+  },
+  "devDependencies": {
+    "web-ext": "^7.6.2"
+  }
+}
