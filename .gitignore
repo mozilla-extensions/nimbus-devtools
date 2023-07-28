@@ -1,0 +1,4 @@
+node_modules
+dist
+*.pyc
+nimbus-devtools.xpi
