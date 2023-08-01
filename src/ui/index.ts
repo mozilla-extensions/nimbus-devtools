@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-browser.browserAction.onClicked.addListener(() =>
-  browser.tabs.create({
-    url: "./ui/index.html",
-  }),
-);
+document.addEventListener("DOMContentLoaded", () => {
+  console.log(
+    "nimbus-devtools add-on version",
+    browser.runtime.getManifest().version,
+  );
+});

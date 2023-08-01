@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const DIRNAME = path.dirname(fileURLToPath(import.meta.url));
 
-const DIRS = ["dist", "web-ext-artifacts"];
+const DIRS = [".prettier-cache", "dist", "web-ext-artifacts"];
 
 for (const dir of DIRS) {
   const dirPath = path.join(DIRNAME, "..", dir);

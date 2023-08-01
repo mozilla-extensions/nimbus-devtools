@@ -5,8 +5,17 @@
   "license": "MPL-2.0",
   "private": true,
   "repository": "https://github.com/mozilla-extensions/nimbus-devtools",
+  "targets": {
+    "ui": {
+      "distDir": "./dist/ui",
+      "publicUrl": "./",
+      "source": "./src/ui/index.html"
+    }
+  },
+  "browserslist": "firefox 113",
   "scripts": {
-    "build": "npm-run-all clean build:manifest build:package",
+    "build": "npm-run-all clean build:manifest build:ui build:package",
+    "build:ui": "parcel build --target ui",
     "build:manifest": "node ./bin/build-manifest.mjs",
     "build:package": "web-ext build -s dist --overwrite-dest --filename nimbus-devtools.xpi",
     "clean": "node ./bin/clean.mjs",
@@ -14,17 +23,25 @@
     "lint:web-ext": "web-ext lint -s dist",
     "lint:eslint": "eslint \"./**/*.{cjs,js,mjs}\"",
     "lint:prettier": "prettier -c \"./src/**/*.{js,json}\" \"./bin/**/*.mjs\"",
+    "lint:tsc": "tsc",
     "fmt": "prettier -w \"./**/*.{cjs,js,json,mjs}\"",
     "fix": "npm-run-all fix:eslint fmt",
     "fix:eslint": "npm run lint:eslint -- --fix",
     "web-ext": "web-ext"
   },
   "devDependencies": {
+    "@tsconfig/node18": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^8.9.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
     "eslint-plugin-import": "^2.28.0",
     "npm-run-all": "^4.1.5",
+    "parcel": "^2.9.3",
     "prettier": "^3.0.0",
-    "web-ext": "^7.6.2"
+    "typescript": "^5.1.6",
+    "web-ext": "^7.6.2",
+    "web-ext-types": "^3.2.1"
   }
 }

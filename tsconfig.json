@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "isolatedModules": true, // For Parcel
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "sourceMap": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"]
+  },
+  "include": ["./src/ui/**/*.ts"],
+  "exclude": ["node_modules"]
+}
