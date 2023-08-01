@@ -6,6 +6,8 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:import/typescript",
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
   ],
   env: {
     es2023: true,
