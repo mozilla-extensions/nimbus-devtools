@@ -13,6 +13,6 @@
     "noImplicitReturns": true,
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"]
   },
-  "include": ["./src/ui/**/*.ts", "./src/ui/**/*.tsx"],
+  "include": ["./src/types/**/*.d.ts", "./src/ui/**/*.ts", "./src/ui/**/*.tsx"],
   "exclude": ["node_modules"]
 }
