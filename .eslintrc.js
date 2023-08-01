@@ -26,5 +26,5 @@ module.exports = {
       },
     ],
   },
-  ignorePatterns: [".eslintrc.js", "dist/**/*"],
+  ignorePatterns: ["tailwind.config.js", ".eslintrc.js", "dist/**/*"],
 };
