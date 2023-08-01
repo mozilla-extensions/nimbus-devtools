@@ -5,20 +5,24 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
+
+import Watcher from "watcher";
 
 const DIRNAME = path.dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = path.resolve(DIRNAME, "..", "src");
 const DIST_DIR = path.resolve(DIRNAME, "..", "dist");
 const MANIFEST = "manifest.json";
+const MANIFEST_PATH = path.join(SRC_DIR, MANIFEST);
 
 /**
  * Parse manifest.json and return the list of files required by the extension.
  */
-function parseManifest() {
+function parseManifest({ absolute = false } = {}) {
   const files = [MANIFEST];
 
-  const contents = fs.readFileSync(path.join(SRC_DIR, MANIFEST), {
+  const contents = fs.readFileSync(MANIFEST_PATH, {
     encoding: "utf-8",
   });
   const manifest = JSON.parse(contents);
@@ -33,6 +37,10 @@ function parseManifest() {
     if (api.child) {
       files.push(api.parent.child);
     }
+  }
+
+  if (absolute) {
+    return files.map((f) => path.join(SRC_DIR, f));
   }
 
   return files;
@@ -52,5 +60,29 @@ function copyFiles(files) {
   }
 }
 
-const files = parseManifest();
-copyFiles(files);
+function watch() {
+  let watcher;
+
+  function makeWatcher() {
+    const files = parseManifest({ absolute: true });
+
+    watcher = new Watcher(files);
+    watcher.on("all", (event, targetPath) => {
+      if (event === "change" && targetPath === MANIFEST_PATH) {
+        watcher.close();
+        makeWatcher();
+      }
+
+      copyFiles(parseManifest());
+    });
+  }
+
+  makeWatcher();
+}
+
+if (process.argv.length === 3 && process.argv[2] == "--watch") {
+  watch();
+} else {
+  const files = parseManifest();
+  copyFiles(files);
+}
