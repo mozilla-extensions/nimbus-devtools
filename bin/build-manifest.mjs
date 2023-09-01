@@ -30,6 +30,8 @@ function parseManifest({ absolute = false } = {}) {
   files.push(...(manifest.background?.scripts ?? []));
 
   for (const api of Object.values(manifest.experiment_apis ?? {})) {
+    files.push(api.schema);
+
     if (api.parent) {
       files.push(api.parent.script);
     }
