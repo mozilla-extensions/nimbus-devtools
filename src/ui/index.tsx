@@ -11,6 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#app")
     .forEach(el => {
       const root = createRoot(el);
-      root.render(<span className="text-3xl">nimbus-devtools add-on version {version}</span>);
+      root.render(<span>nimbus-devtools add-on version {version}</span>);
     });
 });
