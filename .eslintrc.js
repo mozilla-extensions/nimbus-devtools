@@ -26,9 +26,5 @@ module.exports = {
       },
     ],
   },
-  ignorePatterns: [
-    "dist/**/*",
-    ".eslintrc.js",
-    "web-ext-config.js",
-  ],
+  ignorePatterns: ["dist/**/*", ".eslintrc.js", "web-ext-config.js"],
 };

@@ -2,7 +2,21 @@
   {
     "namespace": "experiments.nimbus",
     "description": "Nimbus Experiments",
-    "functions": [],
+    "functions": [
+      {
+        "name": "enrollInExperiment",
+        "type": "function",
+        "description": "Enrolls a user into an experiment based on the provided JSON.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "jsonData",
+            "type": "any",
+            "description": "An object representing the experiment to enroll in."
+          }
+        ]
+      }
+    ],
     "events": []
   }
 ]

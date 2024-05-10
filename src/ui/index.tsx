@@ -3,14 +3,29 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import MainPage from "./components/MainPage";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const version = browser.runtime.getManifest().version;
-
-  document.querySelectorAll("#app")
-    .forEach(el => {
-      const root = createRoot(el);
-      root.render(<span>nimbus-devtools add-on version {version}</span>);
-    });
+  document.querySelectorAll("#app").forEach((el) => {
+    const root = createRoot(el);
+    root.render(
+      <StrictMode>
+        <Router>
+          <Navbar />
+          <Sidebar />
+          <div className="main-content">
+            <Routes>
+              <Route path="/" element={<MainPage />} />
+              <Route path="/experiment-json" element={<MainPage />} />
+            </Routes>
+          </div>
+        </Router>
+      </StrictMode>
+    );
+  });
 });

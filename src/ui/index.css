@@ -1,0 +1,121 @@
+@import "../../node_modules/normalize.css/normalize.css";
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif; 
+}
+
+.navbar {
+    background-color: #382459;
+    padding: 16px 0;
+}
+
+.container {
+    width: 100%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav__content {
+    display: flex;
+}
+
+.nav__logo {
+    height: 32px;
+    margin-right: 16px;
+    padding: 20px;
+}
+
+.nav__link {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    padding-left: 20px;
+}
+
+.content {
+    margin-top: 60px;
+    margin-left: 220px;
+    padding: 20px;
+}
+
+.sidebar {
+    width: 230px;
+    position: fixed;
+    left: 0;
+    top: 61px;
+    height: calc(100% - 80px);
+    background-color: #ebe7f0;
+    padding: 0px;
+    border-width: 4px;
+    border-radius: 8px;
+    overflow-y: auto;
+    margin: 10px 10px 10px 10px;
+}
+
+.sidebar__link {
+    display: block;
+    padding-left: 20px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    margin: 0px 0px 0px 0px;
+    color: #382459;
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+
+.sidebar__link:hover {
+    background-color: #c7bed4;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: calc(100% - 260px);
+    height: calc(100% - 80px);
+    position: fixed;
+    left: 240px;
+    top: 61px;
+    padding: 10px; 
+    border-width: 4px;
+    border-radius: 8px;
+    overflow-y: auto;
+}
+
+.json-input {
+    padding: 20px;
+    height: calc(100% - 50px);
+    font-family: monospace;
+    font-size: 1.1rem;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 8px;
+    resize: none;
+    background-color: #f4f4f4;
+    min-height: 150px;
+    overflow-y: auto;
+}
+
+.json-input:focus {
+    outline: none;
+}
+
+.enroll-button {
+    padding: 20px 20px;
+    margin-top: 10px;
+    font-size: 1.2rem;
+    background-color: #47326a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.enroll-button:hover {
+    background-color: #281548;
+}
