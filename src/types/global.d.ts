@@ -3,4 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-declare namespace browser.experiments.nimbus {}
+declare namespace browser.experiments.nimbus {
+    function enrollInExperiment(jsonData: any): Promise<Object>;
+}

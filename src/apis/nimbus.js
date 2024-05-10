@@ -3,12 +3,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* eslint-disable-next-line no-unused-vars */
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "nimbus" }]*/
+
+const { ExperimentManager } = ChromeUtils.importESModule(
+  "resource://nimbus/lib/ExperimentManager.sys.mjs",
+);
+
 var nimbus = class extends ExtensionAPI {
   getAPI() {
     return {
       experiments: {
-        nimbus: {},
+        nimbus: {
+          async enrollInExperiment(jsonData) {
+            try {
+              const result = await ExperimentManager.enroll(
+                jsonData,
+                "nimbus-devtools",
+              );
+              return result !== null;
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+        },
       },
     };
   }
