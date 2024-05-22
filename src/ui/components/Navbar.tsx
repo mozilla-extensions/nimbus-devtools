@@ -6,7 +6,9 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="container">
         <div className="nav__content">
-          <Link to="/experiment-json" className="nav__link">Nimbus Developer Tools</Link>
+          <Link to="/experiment-json" className="nav__link">
+            Nimbus Developer Tools
+          </Link>
         </div>
       </div>
     </nav>

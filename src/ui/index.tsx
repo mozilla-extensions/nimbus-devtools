@@ -6,6 +6,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import MainPage from "./components/MainPage";
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </Routes>
           </div>
         </Router>
-      </StrictMode>
+      </StrictMode>,
     );
   });
 });

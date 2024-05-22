@@ -4,15 +4,20 @@ import { useState, useCallback, ChangeEvent } from "react";
 const MainPage: React.FC = () => {
   const [jsonInput, setJsonInput] = useState("");
 
-  const handleInputChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
-    setJsonInput(event.target.value);
-  }, []);
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) => {
+      setJsonInput(event.target.value);
+    },
+    [],
+  );
 
   const handleEnrollClick = useCallback(async () => {
     const jsonData = jsonInput;
     try {
-      const result = await browser.experiments.nimbus.enrollInExperiment(JSON.parse(jsonData));
-     
+      const result = await browser.experiments.nimbus.enrollInExperiment(
+        JSON.parse(jsonData) as object,
+      );
+
       if (result) {
         console.log("Enrollment successful");
         alert("Enrollment successful");
@@ -43,4 +48,3 @@ const MainPage: React.FC = () => {
 };
 
 export default MainPage;
-

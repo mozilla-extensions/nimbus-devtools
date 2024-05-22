@@ -27,12 +27,4 @@ module.exports = {
       version: "18.3.1",
     },
   },
-  rules: {
-    "@typescript-eslint/no-misused-promises": [
-      "error",
-      {
-        checksVoidReturn: false,
-      },
-    ],
-  },
 };
