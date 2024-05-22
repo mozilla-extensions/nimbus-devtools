@@ -4,5 +4,5 @@
  */
 
 declare namespace browser.experiments.nimbus {
-    function enrollInExperiment(jsonData: any): Promise<Object>;
+  function enrollInExperiment(jsonData: object): Promise<boolean>;
 }
