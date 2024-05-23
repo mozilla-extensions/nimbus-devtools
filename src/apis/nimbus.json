@@ -11,10 +11,44 @@
         "parameters": [
           {
             "name": "jsonData",
-            "type": "any",
+            "type": "object",
+            "additionalProperties": true,
             "description": "An object representing the experiment to enroll in."
           }
         ]
+      },
+
+      {
+        "name": "enrollWithFeatureConfig",
+        "type": "function",
+        "description": "Enrolls a user into an experiment based on the provided feature configuration.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "featureId",
+            "type": "string",
+            "description": "A string containing the selected feature ID."
+          },
+          {
+            "name": "featureValue",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "An object representing the feature configuration of the experiment to enroll in."
+          },
+          {
+            "name": "isRollout",
+            "type": "boolean",
+            "description": "An boolean representing whether or not this should be a rollout."
+          }
+        ]
+      },
+
+      {
+        "name": "getFeatureConfigs",
+        "type": "function",
+        "description": "Get all the feature IDs from Nimbus.",
+        "async": true,
+        "parameters": []
       }
     ],
     "events": []
