@@ -10,6 +10,7 @@ import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import MainPage from "./components/MainPage";
+import FeatureConfigPage from "./components/FeatureConfigPage";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#app").forEach((el) => {
@@ -23,6 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <Routes>
               <Route path="/" element={<MainPage />} />
               <Route path="/experiment-json" element={<MainPage />} />
+              <Route
+                path="/experiment-feature-config"
+                element={<FeatureConfigPage />}
+              />
             </Routes>
           </div>
         </Router>

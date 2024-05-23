@@ -8,6 +8,9 @@
 const { ExperimentManager } = ChromeUtils.importESModule(
   "resource://nimbus/lib/ExperimentManager.sys.mjs",
 );
+const { ExperimentAPI, NimbusFeatures } = ChromeUtils.importESModule(
+  "resource://nimbus/ExperimentAPI.sys.mjs",
+);
 
 var nimbus = class extends ExtensionAPI {
   getAPI() {
@@ -21,6 +24,58 @@ var nimbus = class extends ExtensionAPI {
                 "nimbus-devtools",
               );
               return result !== null;
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+
+          async enrollWithFeatureConfig(featureId, featureValue, isRollout) {
+            try {
+              const recipe = JSON.parse(`{
+                "bucketConfig": {
+                  "count": 1000,
+                  "namespace": "devtools-test",
+                  "randomizationUnit": "normandy_id",
+                  "start": 0,
+                  "total": 1000
+                },
+                "branches": [
+                  {
+                    "features": [
+                      {
+                        "featureId": "${featureId}",
+                        "value": ${JSON.stringify(featureValue)}
+                      }
+                    ],
+                    "ratio": 1,
+                    "slug": "control"
+                  }
+                ],
+                "isRollout": ${isRollout},
+                "featureIds": [
+                  "${featureId}"
+                ],
+                "slug": "nimbus-devtools-${featureId}-enrollment",
+                "userFacingName": "Nimbus Devtools ${featureId} Enrollment",
+                "userFacingDescription": "Testing the feature with feature ID: ${featureId}."
+              }`);
+
+              const result = await ExperimentManager.enroll(
+                recipe,
+                "nimbus-devtools",
+              );
+              return result !== null;
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+
+          async getFeatureConfigs() {
+            try {
+              await ExperimentAPI.ready();
+              return Object.keys(NimbusFeatures);
             } catch (error) {
               console.error(error);
               throw error;

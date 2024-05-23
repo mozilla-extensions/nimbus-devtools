@@ -3,11 +3,11 @@
 body, html {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif; 
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .navbar {
-    background-color: #382459;
+    background-color: #44144c;
     padding: 16px 0;
 }
 
@@ -24,17 +24,17 @@ body, html {
 }
 
 .nav__logo {
-    height: 32px;
-    margin-right: 16px;
-    padding: 20px;
+    height: 30px;
+    margin-right: 10px;
+    padding-left: 20px;
 }
 
 .nav__link {
     font-size: 1.5rem;
-    font-weight: bold;
-    color: white;
+    font-weight: 600;
+    color: #f3f2f3;
     text-decoration: none;
-    padding-left: 20px;
+    padding-left: 5px;
 }
 
 .content {
@@ -48,8 +48,8 @@ body, html {
     position: fixed;
     left: 0;
     top: 61px;
-    height: calc(100% - 80px);
-    background-color: #ebe7f0;
+    height: calc(100% - 82px);
+    background-color: #f3f2f3;
     padding: 0px;
     border-width: 4px;
     border-radius: 8px;
@@ -63,7 +63,7 @@ body, html {
     padding-top: 30px;
     padding-bottom: 30px;
     margin: 0px 0px 0px 0px;
-    color: #382459;
+    color: #6a3d72;
     text-decoration: none;
     font-size: 1.1rem;
 }
@@ -76,10 +76,10 @@ body, html {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    width: calc(100% - 260px);
+    width: calc(100% - 265px);
     height: calc(100% - 80px);
     position: fixed;
-    left: 240px;
+    left: 245px;
     top: 61px;
     padding: 10px; 
     border-width: 4px;
@@ -108,7 +108,7 @@ body, html {
     padding: 20px 20px;
     margin-top: 10px;
     font-size: 1.2rem;
-    background-color: #47326a;
+    background-color: #38103f;
     color: white;
     border: none;
     cursor: pointer;
@@ -118,4 +118,52 @@ body, html {
 
 .enroll-button:hover {
     background-color: #281548;
+}
+
+.dropdown-button {
+    padding: 10px 10px 10px 20px;
+    margin-bottom: 10px;
+    width: 100%;
+    font-family: monospace;
+    font-size: 1.1rem;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 8px;
+    resize: none;
+    background-color: #f4f4f4;
+    color: #000000;
+}
+
+.options {
+    align-items: center;
+    width: 100%;
+    display: flex;
+}
+
+.options__dropdown {
+    flex-basis: 85%;
+}
+
+.options__checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    align-items: center;
+    display: flex;
+}
+
+.options__checkbox-label {
+    font-size: 1.1rem;
+    display: flex;
+}
+
+.options__checkbox-background {
+    padding: 10px 10px 10px 20px;
+    flex-basis: 25%;
+    display: flex;
+    align-items: center;
+    background-color: #f4f4f4;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 8px;
+    margin-left: 10px;
+    margin-bottom: 10px;
 }

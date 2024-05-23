@@ -1,7 +1,6 @@
-import * as React from "react";
-import { useState, useCallback, ChangeEvent } from "react";
+import { ChangeEvent, FC, useState, useCallback } from "react";
 
-const MainPage: React.FC = () => {
+const MainPage: FC = () => {
   const [jsonInput, setJsonInput] = useState("");
 
   const handleInputChange = useCallback(
@@ -12,10 +11,9 @@ const MainPage: React.FC = () => {
   );
 
   const handleEnrollClick = useCallback(async () => {
-    const jsonData = jsonInput;
     try {
       const result = await browser.experiments.nimbus.enrollInExperiment(
-        JSON.parse(jsonData) as object,
+        JSON.parse(jsonInput) as object,
       );
 
       if (result) {
