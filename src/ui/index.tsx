@@ -11,6 +11,7 @@ import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import MainPage from "./components/MainPage";
 import FeatureConfigPage from "./components/FeatureConfigPage";
+import SettingsPage from "./components/SettingsPage";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#app").forEach((el) => {
@@ -28,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 path="/experiment-feature-config"
                 element={<FeatureConfigPage />}
               />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>
         </Router>
