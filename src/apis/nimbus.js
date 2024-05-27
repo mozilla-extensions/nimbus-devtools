@@ -81,6 +81,29 @@ var nimbus = class extends ExtensionAPI {
               throw error;
             }
           },
+
+          async getCurrentCollection() {
+            try {
+              return Services.prefs.getStringPref(
+                "messaging-system.rsexperimentloader.collection_id",
+              );
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+
+          async setCollection(collectionId) {
+            try {
+              Services.prefs.setStringPref(
+                "messaging-system.rsexperimentloader.collection_id",
+                collectionId,
+              );
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
         },
       },
     };

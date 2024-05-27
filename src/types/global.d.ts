@@ -20,4 +20,8 @@ declare namespace browser.experiments.nimbus {
   ): Promise<boolean>;
 
   function getFeatureConfigs(): Promise<string[]>;
+
+  function getCurrentCollection(): Promise<string>;
+
+  function setCollection(collectionId: string): Promise<void>;
 }

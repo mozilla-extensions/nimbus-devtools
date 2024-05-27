@@ -167,3 +167,75 @@ body, html {
     margin-left: 10px;
     margin-bottom: 10px;
 }
+
+.settings {
+    padding: 10px;
+    height: 100%;
+    font-family: monospace;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    resize: none;
+    background-color: #f4f4f4;
+    margin-bottom: 3px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.settings__title {
+    color: #6a3d72;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0px;
+    padding-left: 15px;
+    padding-top: 15px;
+    margin-bottom: 10px;
+}
+
+.settings__underline {
+    width: calc(100% - 30px);
+    border: 0;
+    border-top: 1px solid #6a3d72;
+    margin-left: 15px;
+    margin-bottom: 25px;
+}
+
+.settings__radio-group-title {
+    color: #6a3d72;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 0px;
+    padding-left: 15px;
+    margin-bottom: 10px;
+}
+
+.settings__radio-group-line {
+    width: calc(100% - 30px);
+    border: 0;
+    border-top: 1px solid rgb(212, 208, 208);
+    margin-left: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.settings__radio-group {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    color: #44144c;
+}
+  
+.settings__radio {
+    margin-right: 10px;
+}
+
+.settings__radio-label {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    padding: 6px;
+}
+  
+.settings__radio-label input[type="text"] {
+    margin-left: 10px;
+    font-size: 1rem;
+}

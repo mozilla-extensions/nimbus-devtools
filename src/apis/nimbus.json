@@ -49,6 +49,28 @@
         "description": "Get all the feature IDs from Nimbus.",
         "async": true,
         "parameters": []
+      },
+
+      {
+        "name": "getCurrentCollection",
+        "type": "function",
+        "description": "Get the current collection ID.",
+        "async": true,
+        "parameters": []
+      },
+
+      {
+        "name": "setCollection",
+        "type": "function",
+        "description": "Set the collection ID to the given collectionId.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "collectionId",
+            "type": "string",
+            "description": "The collection to switch to."
+          }
+        ]
       }
     ],
     "events": []
