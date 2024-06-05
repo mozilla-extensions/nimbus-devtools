@@ -10,6 +10,53 @@ declare module "*.png" {
   export default value;
 }
 
+declare module "mozjexl/lib/grammar" {
+  export interface GrammarItem {
+    type: string;
+    precedence?: number;
+    eval?: (
+      left: boolean | number | string,
+      right?: boolean | number | string,
+    ) => boolean | number | string;
+  }
+
+  export interface Grammar {
+    elements: {
+      [key: string]: GrammarItem;
+    };
+  }
+
+  export interface Token {
+    type: string;
+    name?: string;
+    value: boolean | number | string;
+    raw: string;
+  }
+
+  export const elements: Grammar;
+}
+
+declare module "mozjexl/lib/Lexer" {
+  import { Grammar, Token } from "mozjexl/lib/grammar";
+
+  export default class Lexer {
+    constructor(grammar: Grammar);
+    tokenize(expression: string): Token[];
+  }
+}
+
+declare module "mozjexl/lib/parser/Parser" {
+  import { Grammar, Token } from "mozjexl/lib/grammar";
+
+  import { ASTNode } from "jexlParser";
+
+  export default class Parser {
+    constructor(grammar: Grammar);
+    addTokens(tokens: Token[]): void;
+    complete(): ASTNode;
+  }
+}
+
 declare namespace browser.experiments.nimbus {
   function enrollInExperiment(jsonData: object): Promise<boolean>;
 
@@ -24,4 +71,8 @@ declare namespace browser.experiments.nimbus {
   function getCurrentCollection(): Promise<string>;
 
   function setCollection(collectionId: string): Promise<void>;
+
+  function evaluateJEXL(expression: string, context: object): Promise<object>;
+
+  function getClientContext(): Promise<object>;
 }

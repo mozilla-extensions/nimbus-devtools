@@ -71,6 +71,35 @@
             "description": "The collection to switch to."
           }
         ]
+      },
+
+      {
+        "name": "evaluateJEXL",
+        "type": "function",
+        "description": "Evaluate a JEXL expression.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "expression",
+            "type": "string",
+            "description": "The JEXL expression to evaluate."
+          },
+          {
+            "name": "context",
+            "type": "object",
+            "description": "The associated client context.",
+            "additionalProperties": true,
+            "optional": true
+          }
+        ]
+      },
+
+      {
+        "name": "getClientContext",
+        "type": "function",
+        "description": "Get the client context.",
+        "async": true,
+        "parameters": []
       }
     ],
     "events": []

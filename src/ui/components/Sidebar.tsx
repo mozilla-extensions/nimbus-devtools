@@ -10,6 +10,9 @@ const Sidebar: FC = () => {
       <Link to="/experiment-feature-config" className="sidebar__link">
         Feature Configuration Enrollment
       </Link>
+      <Link to="/jexl-debugger" className="sidebar__link">
+        JEXL Debugger
+      </Link>
       <Link to="/settings" className="sidebar__link">
         Settings
       </Link>
