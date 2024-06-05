@@ -48,8 +48,8 @@ body, html {
     position: fixed;
     left: 0;
     top: 61px;
-    height: calc(100% - 82px);
-    background-color: #f3f2f3;
+    height: calc(100% - 80px);
+    background-color: #f0eaf0;
     padding: 0px;
     border-width: 4px;
     border-radius: 8px;
@@ -63,7 +63,7 @@ body, html {
     padding-top: 30px;
     padding-bottom: 30px;
     margin: 0px 0px 0px 0px;
-    color: #6a3d72;
+    color: #44144c;
     text-decoration: none;
     font-size: 1.1rem;
 }
@@ -95,7 +95,6 @@ body, html {
     border: 2px solid rgb(212, 208, 208);
     border-radius: 8px;
     resize: none;
-    background-color: #f4f4f4;
     min-height: 150px;
     overflow-y: auto;
 }
@@ -122,6 +121,7 @@ body, html {
 
 .dropdown-button {
     padding: 10px 10px 10px 20px;
+    background-color: white;
     margin-bottom: 10px;
     width: 100%;
     font-family: monospace;
@@ -129,7 +129,6 @@ body, html {
     border: 2px solid rgb(212, 208, 208);
     border-radius: 8px;
     resize: none;
-    background-color: #f4f4f4;
     color: #000000;
 }
 
@@ -161,7 +160,6 @@ body, html {
     flex-basis: 25%;
     display: flex;
     align-items: center;
-    background-color: #f4f4f4;
     border: 2px solid rgb(212, 208, 208);
     border-radius: 8px;
     margin-left: 10px;
@@ -173,9 +171,7 @@ body, html {
     height: 100%;
     font-family: monospace;
     font-size: 1.1rem;
-    border-radius: 8px;
     resize: none;
-    background-color: #f4f4f4;
     margin-bottom: 3px;
     overflow-y: auto;
     overflow-x: auto;
@@ -238,4 +234,120 @@ body, html {
 .settings__radio-label input[type="text"] {
     margin-left: 10px;
     font-size: 1rem;
+}
+
+.jexl-debugger {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.jexl-debugger__section {
+    padding: 20px;
+    padding-top: 10px;
+    padding-left: 10px;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid rgb(212, 208, 208);
+}
+
+.jexl-debugger__section-title {
+    color: #6a3d72;
+    font-size: 1.4rem;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+   
+.jexl-debugger__expression-input {
+    margin-top: 10px;
+    padding: 20px;
+    font-family: monospace;
+    font-size: 1rem;
+    height: calc(100% - 130px);
+    width: calc(100% - 40px);
+    border-radius: 8px;
+    border: none;
+    resize: none;
+    min-height: 150px;
+    overflow-y: auto;
+    border: 2px solid rgb(212, 208, 208);
+}
+
+.jexl-debugger__expression-input:focus {
+    outline: none;
+}
+  
+.jexl-debugger__evaluate-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #542c5b;
+    color: white;
+    width: 100%;
+}
+
+.jexl-debugger__evaluate-button:hover {
+    background-color: #6a3d72;
+}
+
+pre {
+    font-size: 1.2em;
+    color: black;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;  
+    overflow: auto; 
+}
+
+.jexl-debugger__client-context-item {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+.jexl-debugger__client-context-title {
+    font-size: 1em;
+    color: #44144c;
+    font-weight: bold;
+}
+
+.jexl-debugger__section-button {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding: 5px 15px;
+    background-color: #f0eaf0;
+    color: #44144c;
+    border-radius: 4px;
+    border: 1px solid #44144c;
+}
+
+.jexl-debugger__section-button:hover {
+    background-color: white;
+}
+
+.jexl-debugger__client-context-value-input {
+    font-size: 1em;
+    color: black;
+    padding: 10px;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 6px;
+    width: 50%;
+    height: 15px;
+}
+
+.jexl-debugger__client-context-value-text-area {
+    font-size: 1em;
+    color: black;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 6px;
+    width: 50%;
+    height: 100px;
 }

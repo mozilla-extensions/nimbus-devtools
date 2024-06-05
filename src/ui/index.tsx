@@ -12,6 +12,7 @@ import Sidebar from "./components/Sidebar";
 import MainPage from "./components/MainPage";
 import FeatureConfigPage from "./components/FeatureConfigPage";
 import SettingsPage from "./components/SettingsPage";
+import JEXLDebuggerPage from "./components/JEXLDebuggerPage";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#app").forEach((el) => {
@@ -29,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 path="/experiment-feature-config"
                 element={<FeatureConfigPage />}
               />
+              <Route path="/jexl-debugger" element={<JEXLDebuggerPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>
