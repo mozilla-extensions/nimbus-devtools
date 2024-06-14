@@ -119,7 +119,9 @@ async function traverseAst(
   context: object,
   falseParts: string[],
 ): Promise<unknown> {
-  if (!ast) return true;
+  if (!ast) {
+    return true;
+  }
 
   const subExpr = await getExpression(ast);
   const result = await evaluateExpression(subExpr, context);
@@ -137,8 +139,12 @@ async function traverseAst(
     if (result === false && leftResult !== false && rightResult !== false) {
       falseParts.push(subExpr);
     } else {
-      if (ast.left) await traverseAst(ast.left, context, falseParts);
-      if (ast.right) await traverseAst(ast.right, context, falseParts);
+      if (ast.left) {
+        await traverseAst(ast.left, context, falseParts);
+      }
+      if (ast.right) {
+        await traverseAst(ast.right, context, falseParts);
+      }
     }
   } else if (ast.type === "UnaryExpression") {
     const rightResult = await evaluateExpression(
@@ -147,15 +153,21 @@ async function traverseAst(
     );
     if (result === false && rightResult !== false) {
       falseParts.push(subExpr);
-      if (ast.right) await traverseAst(ast.right, context, falseParts);
+      if (ast.right) {
+        await traverseAst(ast.right, context, falseParts);
+      }
     } else {
-      if (ast.right) await traverseAst(ast.right, context, falseParts);
+      if (ast.right) {
+        await traverseAst(ast.right, context, falseParts);
+      }
     }
   } else if (ast.type === "Transform") {
     if (result === false) {
       falseParts.push(subExpr);
     } else {
-      if (ast.subject) await traverseAst(ast.subject, context, falseParts);
+      if (ast.subject) {
+        await traverseAst(ast.subject, context, falseParts);
+      }
       if (ast.args) {
         for (const arg of ast.args) {
           await traverseAst(arg, context, falseParts);
@@ -166,8 +178,12 @@ async function traverseAst(
     if (result === false) {
       falseParts.push(subExpr);
     } else {
-      if (ast.subject) await traverseAst(ast.subject, context, falseParts);
-      if (ast.expr) await traverseAst(ast.expr, context, falseParts);
+      if (ast.subject) {
+        await traverseAst(ast.subject, context, falseParts);
+      }
+      if (ast.expr) {
+        await traverseAst(ast.expr, context, falseParts);
+      }
     }
   } else if (ast.type === "Literal" || ast.type === "Identifier") {
     if (result === false) {
@@ -204,7 +220,9 @@ function getFullIdentifier(ast: Identifier): string {
  * @returns {Promise<string>} - The JEXL expression string.
  */
 async function getExpression(ast: ASTNode): Promise<string> {
-  if (!ast) return "";
+  if (!ast) {
+    return "";
+  }
 
   if (ast.type === "BinaryExpression" || ast.type === "LogicalExpression") {
     const leftExpr = await getExpression(ast.left);
