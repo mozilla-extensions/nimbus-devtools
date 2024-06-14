@@ -75,4 +75,6 @@ declare namespace browser.experiments.nimbus {
   function evaluateJEXL(expression: string, context: object): Promise<object>;
 
   function getClientContext(): Promise<object>;
+
+  function updateRecipes(forceSync: boolean): Promise<void>;
 }
