@@ -100,6 +100,20 @@
         "description": "Get the client context.",
         "async": true,
         "parameters": []
+      },
+
+      {
+        "name": "updateRecipes",
+        "type": "function",
+        "description": "Get all recipes from remote settings and update enrollments.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "forceSync",
+            "type": "boolean",
+            "description": "Force Remote Settings to sync recipe collection before updating."
+          }
+        ]
       }
     ],
     "events": []

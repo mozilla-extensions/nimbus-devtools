@@ -6,6 +6,7 @@ const PREVIEW_COLLECTION = "nimbus-preview";
 const SettingsPage: FC = () => {
   const [collectionId, setCollectionId] = useState("");
   const [customCollection, setCustomCollection] = useState("");
+  const [forceSync, setForceSync] = useState(true);
 
   useEffect(() => {
     void (async () => {
@@ -62,6 +63,21 @@ const SettingsPage: FC = () => {
     [collectionId, customCollection, setCustomCollection],
   );
 
+  const handleForceSyncChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setForceSync(event.target.value === "forceSync");
+    },
+    [],
+  );
+
+  const handleUpdateClick = useCallback(async () => {
+    try {
+      await browser.experiments.nimbus.updateRecipes(forceSync);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [forceSync, setForceSync]);
+
   return (
     <div className="main-content">
       <div className="settings">
@@ -114,6 +130,33 @@ const SettingsPage: FC = () => {
             />
           </label>
         </div>
+        <hr className="settings__radio-group-line" />
+        <p className="settings__radio-group-title">Re-load experiments</p>
+        <div className="settings__radio-group">
+          <label className="settings__radio-label">
+            <input
+              className="settings__radio"
+              type="radio"
+              value="forceSync"
+              checked={forceSync === true}
+              onChange={handleForceSyncChange}
+            />
+            Update with Remote Settings Sync
+          </label>
+          <label className="settings__radio-label">
+            <input
+              className="settings__radio"
+              type="radio"
+              value="no-forceSync"
+              checked={forceSync === false}
+              onChange={handleForceSyncChange}
+            />
+            Update without Remote Settings Sync
+          </label>
+        </div>
+        <button className="settings__update-button" onClick={handleUpdateClick}>
+          Update
+        </button>
         <hr className="settings__radio-group-line" />
       </div>
     </div>

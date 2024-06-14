@@ -6,6 +6,7 @@ module.exports = {
     ecmaVersion: 2023,
   },
   rules: {
+    curly: ["error", "all"],
     "import/order": [
       "error",
       {
