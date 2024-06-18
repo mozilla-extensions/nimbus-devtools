@@ -13,6 +13,7 @@ import MainPage from "./components/MainPage";
 import FeatureConfigPage from "./components/FeatureConfigPage";
 import SettingsPage from "./components/SettingsPage";
 import JEXLDebuggerPage from "./components/JEXLDebuggerPage";
+import ExperimentBrowserPage from "./components/ExperimentBrowserPage";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#app").forEach((el) => {
@@ -31,6 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 element={<FeatureConfigPage />}
               />
               <Route path="/jexl-debugger" element={<JEXLDebuggerPage />} />
+              <Route
+                path="/experiment-browser"
+                element={<ExperimentBrowserPage />}
+              />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>

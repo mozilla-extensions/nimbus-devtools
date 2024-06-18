@@ -55,6 +55,7 @@
     "web-ext-types": "^3.2.1"
   },
   "dependencies": {
+    "@mozilla/nimbus-schemas": "^2024.3.1",
     "mozjexl": "github:mozilla/mozjexl",
     "normalize.css": "^8.0.1",
     "react": "^18.3.1",

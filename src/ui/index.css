@@ -367,3 +367,84 @@ pre {
 .settings__update-button:hover {
     background-color: white;
 }
+
+.experiment-viewer__title {
+    color: #6a3d72;
+    font-size: 1.7rem;
+    font-weight: bold;
+    margin-top: 0px;
+    padding-left: 15px;
+    padding-top: 15px;
+    margin-bottom: 20px;
+}
+
+.experiment-viewer__controls {
+    margin-bottom: 25px;
+    padding-left: 15px;
+    color: #6a3d72;
+}
+
+.experiment-viewer__list {
+    margin: 15px;
+}
+
+.experiment-viewer__list table {
+    width: 100%;
+    border-collapse: collapse;
+
+  }
+
+  .experiment-viewer__list th, .experiment-viewer__list td {
+    border-bottom: 2px solid #f0eaf0;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 20px;
+    text-align: center;
+  }
+  
+  .experiment-viewer__list th {
+    background-color: #f0eaf0;
+    color: #6a3d72;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  
+  .experiment-viewer__list tr:last-child td {
+    border-bottom: none;
+  }
+
+  .experiment-viewer__list td:first-child {
+    text-align: left;
+  }
+
+  .experiment-viewer-controls__title {
+    margin-right: 20px;
+    font-size: 1.1rem;
+  }
+
+  .experiment-viewer-controls__dropdown {
+    margin-left: 10px;
+    padding: 5px 20px;
+    background-color: white;
+    font-family: monospace;
+    font-size: 1rem;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 8px;
+    resize: none;
+    color: #6a3d72;
+  }
+
+  .experiment-viewer-controls__button {
+    margin-left: 40px;
+    padding: 5px 20px;
+    background-color: white;
+    color: #6a3d72;
+    border-radius: 8px;
+    border: 2px solid rgb(212, 208, 208);
+    font-size: 1.1em;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .experiment-viewer-controls__button:hover {
+    background-color: #f0eaf0;
+}
