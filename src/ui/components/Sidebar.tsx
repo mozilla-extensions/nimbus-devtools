@@ -13,6 +13,9 @@ const Sidebar: FC = () => {
       <Link to="/jexl-debugger" className="sidebar__link">
         JEXL Debugger
       </Link>
+      <Link to="/experiment-store" className="sidebar__link">
+        Experiment Store
+      </Link>
       <Link to="/experiment-browser" className="sidebar__link">
         Experiment Browser
       </Link>
