@@ -77,4 +77,6 @@ declare namespace browser.experiments.nimbus {
   function getClientContext(): Promise<object>;
 
   function updateRecipes(forceSync: boolean): Promise<void>;
+
+  function forceEnroll(recipe: object, branchSlug: string): Promise<boolean>;
 }
