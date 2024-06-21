@@ -417,6 +417,10 @@ pre {
     text-align: left;
   }
 
+  .experiment-viewer__list td:last-child {
+    text-align: right;
+  }
+
   .experiment-viewer-controls__title {
     margin-right: 20px;
     font-size: 1.1rem;
@@ -448,3 +452,42 @@ pre {
   .experiment-viewer-controls__button:hover {
     background-color: #f0eaf0;
 }
+
+.experiment-viewer-controls__button:active {
+    background-color: rgb(212, 208, 208);
+}
+
+.experiment-viewer-list__button {
+    padding: 5px 10px;
+    margin-top: 5px;
+    border: 2px solid rgb(212, 208, 208);
+    background-color: #f0eaf0;
+    color: #6a3d72;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.experiment-viewer-list__button:hover {
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.experiment-viewer-list__button:active {
+    background-color: rgb(212, 208, 208);
+}
+
+.experiment-viewer-list__dropdown {
+    padding: 5px 5px;
+    background-color: white;
+    font-family: monospace;
+    font-size: 0.8rem;
+    border: 2px solid rgb(212, 208, 208);
+    border-radius: 8px;
+    resize: none;
+    color: #6a3d72;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 150px;
+}
+

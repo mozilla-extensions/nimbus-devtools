@@ -227,6 +227,22 @@ var nimbus = class extends ExtensionAPI {
               throw error;
             }
           },
+
+          async forceEnroll(recipe, branchSlug) {
+            try {
+              const branch = recipe?.branches?.find(
+                (br) => br.slug === branchSlug,
+              );
+              const result = await ExperimentManager.forceEnroll(
+                recipe,
+                branch,
+              );
+              return result !== null;
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
         },
       },
     };

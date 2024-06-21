@@ -114,6 +114,26 @@
             "description": "Force Remote Settings to sync recipe collection before updating."
           }
         ]
+      },
+
+      {
+        "name": "forceEnroll",
+        "type": "function",
+        "description": "Force enroll into a specific branch of an experiment.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "recipe",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The recipe of the experiment to enroll into."
+          },
+          {
+            "name": "branchSlug",
+            "type": "string",
+            "description": "The specific branch slug of the experiment to enroll into."
+          }
+        ]
       }
     ],
     "events": []

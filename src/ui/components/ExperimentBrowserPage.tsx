@@ -17,6 +17,9 @@ const ExperimentBrowserPage: FC = () => {
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
   const [experiments, setExperiments] = useState<NimbusExperiment[]>([]);
+  const [selectedBranches, setSelectedBranches] = useState<{
+    [key: string]: string;
+  }>({});
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -41,6 +44,38 @@ const ExperimentBrowserPage: FC = () => {
   useEffect(() => {
     void fetchExperiments();
   }, [fetchExperiments]);
+
+  const handleEnroll = async (experimentId: string, branchSlug: string) => {
+    if (branchSlug) {
+      const recipe = experiments.find((exp) => exp.id === experimentId);
+      try {
+        const result = await browser.experiments.nimbus.forceEnroll(
+          recipe,
+          branchSlug,
+        );
+        if (result) {
+          console.log("Enrollment successful");
+          alert("Enrollment successful");
+        } else {
+          console.log("Enrollment failed");
+          alert("Enrollment failed");
+        }
+      } catch (error) {
+        console.error(error);
+        alert(error);
+      }
+    } else {
+      console.log("Select a branch before enrolling");
+      alert("Select a branch before enrolling");
+    }
+  };
+
+  const handleBranchChange = (experimentId: string, branchSlug: string) => {
+    setSelectedBranches((prevSelectedBranches) => ({
+      ...prevSelectedBranches,
+      [experimentId]: branchSlug,
+    }));
+  };
 
   return (
     <div className="experiment-viewer">
@@ -83,6 +118,7 @@ const ExperimentBrowserPage: FC = () => {
               <th>Channel</th>
               <th>Version</th>
               <th>Status</th>
+              <th>Force Enroll</th>
             </tr>
           </thead>
           <tbody>
@@ -98,6 +134,35 @@ const ExperimentBrowserPage: FC = () => {
                   {experiment.isEnrollmentPaused
                     ? "Enrolling"
                     : "Enrollment Paused"}
+                </td>
+                <td>
+                  <select
+                    className="experiment-viewer-list__dropdown"
+                    value={selectedBranches[experiment.id]}
+                    onChange={(e) =>
+                      handleBranchChange(experiment.id, e.target.value)
+                    }
+                  >
+                    <option key="" value="">
+                      Select branch
+                    </option>
+                    {experiment.branches?.map((branch) => (
+                      <option key={branch.slug} value={branch.slug}>
+                        {branch.slug}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="experiment-viewer-list__button"
+                    onClick={() =>
+                      handleEnroll(
+                        experiment.id,
+                        selectedBranches[experiment.id],
+                      )
+                    }
+                  >
+                    Enroll
+                  </button>
                 </td>
               </tr>
             ))}
