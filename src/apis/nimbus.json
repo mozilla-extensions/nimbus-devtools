@@ -134,6 +134,42 @@
             "description": "The specific branch slug of the experiment to enroll into."
           }
         ]
+      },
+
+      {
+        "name": "getExperimentStore",
+        "type": "function",
+        "description": "Get all enrollments from the experiment store.",
+        "async": true,
+        "parameters": []
+      },
+
+      {
+        "name": "unenroll",
+        "type": "function",
+        "description": "Unenroll from an active experiment in the store.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "slug",
+            "type": "string",
+            "description": "The slug of the experiment to unenroll from."
+          }
+        ]
+      },
+
+      {
+        "name": "deleteInactiveEnrollment",
+        "type": "function",
+        "description": "Delete an inactive experiment from the store.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "slug",
+            "type": "string",
+            "description": "The slug of the experiment to delete from the store."
+          }
+        ]
       }
     ],
     "events": []

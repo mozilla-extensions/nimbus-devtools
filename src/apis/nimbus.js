@@ -243,6 +243,33 @@ var nimbus = class extends ExtensionAPI {
               throw error;
             }
           },
+
+          async getExperimentStore() {
+            try {
+              return await ExperimentManager.store.getAll();
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+
+          async unenroll(slug) {
+            try {
+              return await ExperimentManager.unenroll(slug, "nimbus-devtools");
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
+
+          async deleteInactiveEnrollment(slug) {
+            try {
+              return await ExperimentManager.store._deleteForTests(slug);
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
         },
       },
     };

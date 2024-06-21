@@ -79,4 +79,10 @@ declare namespace browser.experiments.nimbus {
   function updateRecipes(forceSync: boolean): Promise<void>;
 
   function forceEnroll(recipe: object, branchSlug: string): Promise<boolean>;
+
+  function getExperimentStore(): Promise<object[]>;
+
+  function unenroll(slug: string): Promise<void>;
+
+  function deleteInactiveEnrollment(slug: string): Promise<void>;
 }
