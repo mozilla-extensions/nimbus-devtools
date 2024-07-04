@@ -6,10 +6,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { Container } from "react-bootstrap";
 
-import Navbar from "./components/Navbar";
+import NavigationBar from "./components/NavigationBar";
 import Sidebar from "./components/Sidebar";
-import MainPage from "./components/MainPage";
+import RecipeEnrollmentPage from "./components/RecipeEnrollmentPage";
 import FeatureConfigPage from "./components/FeatureConfigPage";
 import SettingsPage from "./components/SettingsPage";
 import JEXLDebuggerPage from "./components/JEXLDebuggerPage";
@@ -22,12 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
     root.render(
       <StrictMode>
         <Router>
-          <Navbar />
+          <NavigationBar />
           <Sidebar />
-          <div className="main-content">
+          <Container className="main-content">
             <Routes>
-              <Route path="/" element={<MainPage />} />
-              <Route path="/experiment-json" element={<MainPage />} />
+              <Route path="/" element={<RecipeEnrollmentPage />} />
+              <Route
+                path="/experiment-json"
+                element={<RecipeEnrollmentPage />}
+              />
               <Route
                 path="/experiment-feature-config"
                 element={<FeatureConfigPage />}
@@ -43,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
               />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
-          </div>
+          </Container>
         </Router>
       </StrictMode>,
     );

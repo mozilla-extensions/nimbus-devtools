@@ -1,4 +1,5 @@
 import { ChangeEvent, FC, useState, useCallback } from "react";
+import { Form, Container, Row, Col } from "react-bootstrap";
 
 import DropdownMenu from "./DropdownMenu";
 
@@ -52,36 +53,44 @@ const FeatureConfigPage: FC = () => {
         alert(error);
       }
     }
-  }, [jsonInput, setJsonInput, selectedFeatureId]);
+  }, [jsonInput, selectedFeatureId, isRollout]);
 
   return (
-    <div className="main-content">
-      <div className="options">
-        <div className="options__dropdown">
-          <DropdownMenu onSelectFeatureConfigId={handleFeatureSelect} />
-        </div>
-        <div className="options__checkbox-background">
-          <label className="options__checkbox-label">
-            <input
-              type="checkbox"
-              checked={isRollout}
-              onChange={handleCheckboxChange}
-              className="options__checkbox"
-            />
-            isRollout
-          </label>
-        </div>
-      </div>
-      <textarea
-        value={jsonInput}
-        onChange={handleInputChange}
-        placeholder="Enter JSON here"
-        className="json-input"
-      />
-      <button onClick={handleEnrollClick} className="enroll-button">
-        Enroll
-      </button>
-    </div>
+    <Container className="main-content p-2">
+      <Form>
+        <Row className="align-items-stretch">
+          <Col md={9}>
+            <DropdownMenu onSelectFeatureConfigId={handleFeatureSelect} />
+          </Col>
+          <Col md={3} className="ps-0">
+            <Container className="checkbox-border d-flex rounded p-2 grey-border">
+              <Form.Check
+                type="checkbox"
+                checked={isRollout}
+                onChange={handleCheckboxChange}
+                className="large-checkbox mx-3 my-0 justify-content-start font-monospace"
+              />
+              <Form.Label className="font-monospace fs-6">isRollout</Form.Label>
+            </Container>
+          </Col>
+        </Row>
+        <Form.Group>
+          <Form.Control
+            as="textarea"
+            value={jsonInput}
+            onChange={handleInputChange}
+            placeholder="Enter JSON here"
+            className="text-input medium-input rounded p-3 font-monospace fs-6 grey-border"
+          />
+        </Form.Group>
+        <input
+          type="submit"
+          value="Enroll"
+          className="mt-2 py-3 px-4 fs-5 border-0 w-100 rounded text-white"
+          onClick={handleEnrollClick}
+        />
+      </Form>
+    </Container>
   );
 };
 

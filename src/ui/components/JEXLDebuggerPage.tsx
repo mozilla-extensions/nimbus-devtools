@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
 } from "react";
+import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
 import { evaluateJexl } from "../jexlParser";
 
@@ -54,61 +55,70 @@ const JEXLDebuggerPage: FC = () => {
   );
 
   return (
-    <div className="main-content">
-      <div className="jexl-debugger">
-        <div className="jexl-debugger__section">
-          <h2 className="jexl-debugger__section-title">
-            JEXL Filter Expression
-          </h2>
-          <textarea
+    <Container className="main-content">
+      <Row className="justify-content-start pb-2 px-2 pt-3">
+        <Col>
+          <h2 className="primary-fg fs-4 mb-3">JEXL Filter Expression</h2>
+          <Form.Control
+            as="textarea"
             value={jexlExpression}
             onChange={handleExpressionChange}
             placeholder="Enter JEXL expression here"
-            className="jexl-debugger__expression-input"
+            className="text-input rounded p-3 font-monospace fs-6 grey-border"
+            rows={8}
           />
-          <button
+          <input
             onClick={handleEvaluateClick}
-            className="jexl-debugger__evaluate-button"
-          >
-            Evaluate
-          </button>
-        </div>
-        <div className="jexl-debugger__section">
-          <h2 className="jexl-debugger__section-title">Output</h2>
-          <pre>{output}</pre>
-        </div>
-        <div className="jexl-debugger__section">
-          <h2 className="jexl-debugger__section-title">Client Context</h2>
-          <button
+            value="Evaluate"
+            type="submit"
+            className="mt-2 py-2 px-4 fs-6 border-0 w-100 rounded text-white"
+          />
+        </Col>
+      </Row>
+      <hr className="section-line mx-2 mb-2 mt-1" />
+      <Row className="justify-content-start p-2">
+        <Col>
+          <h2 className="primary-fg fs-4 mb-3">Output</h2>
+          <pre className="fs-6 mb-3">{output}</pre>
+        </Col>
+      </Row>
+      <hr className="section-line mx-2 mb-2 mt-0" />
+      <Row className="justify-content-start pb-2 px-2 pt-1">
+        <Col>
+          <h2 className="primary-fg fs-4 mb-3">Client Context</h2>
+          <Button
             onClick={fetchClientContext}
-            className="jexl-debugger__section-button"
+            className="option-button primary-fg py-2 px-3 rounded small-font fw-bold mb-3 grey-border light-bg"
           >
             Refresh Context
-          </button>
+          </Button>
           {memoizedClientContextEntries.map(([key, value]) => (
-            <div key={key} className="jexl-debugger__client-context-item">
-              <p className="jexl-debugger__client-context-title">{key}</p>
-              {typeof value === "number" ||
-              typeof value === "string" ||
-              typeof value === "boolean" ? (
-                <input
-                  type="text"
-                  className="jexl-debugger__client-context-value-input"
-                  readOnly
-                  value={String(value)}
-                />
-              ) : (
-                <textarea
-                  className="jexl-debugger__client-context-value-text-area"
-                  readOnly
-                  value={JSON.stringify(value, null, 2)}
-                />
-              )}
-            </div>
+            <Row key={key} className="mb-4 d-flex align-items-center">
+              <Col xs={3} className="secondary-fg fw-bold">
+                {key}
+              </Col>
+              <Col xs={9}>
+                {["number", "string", "boolean"].includes(typeof value) ? (
+                  <Form.Control
+                    type="text"
+                    readOnly
+                    value={String(value)}
+                    className="p-3 w-50 grey-border short-text"
+                  />
+                ) : (
+                  <Form.Control
+                    as="textarea"
+                    readOnly
+                    value={JSON.stringify(value, null, 2)}
+                    className="p-3 w-50 grey-border long-text"
+                  />
+                )}
+              </Col>
+            </Row>
           ))}
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

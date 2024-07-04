@@ -14,7 +14,9 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"]
+    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
   "include": ["./src/types/**/*.d.ts", "./src/ui/**/*.ts", "./src/ui/**/*.tsx"],
   "exclude": ["node_modules"]

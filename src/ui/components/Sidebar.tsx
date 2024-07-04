@@ -1,28 +1,33 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
+import { Nav } from "react-bootstrap";
+
+const links = [
+  { to: "/experiment-json", text: "JSON Enrollment" },
+  {
+    to: "/experiment-feature-config",
+    text: "Feature Configuration Enrollment",
+  },
+  { to: "/jexl-debugger", text: "JEXL Debugger" },
+  { to: "/experiment-store", text: "Experiment Store" },
+  { to: "/experiment-browser", text: "Experiment Browser" },
+  { to: "/settings", text: "Settings" },
+];
 
 const Sidebar: FC = () => {
   return (
-    <div className="sidebar">
-      <Link to="/experiment-json" className="sidebar__link">
-        JSON Enrollment
-      </Link>
-      <Link to="/experiment-feature-config" className="sidebar__link">
-        Feature Configuration Enrollment
-      </Link>
-      <Link to="/jexl-debugger" className="sidebar__link">
-        JEXL Debugger
-      </Link>
-      <Link to="/experiment-store" className="sidebar__link">
-        Experiment Store
-      </Link>
-      <Link to="/experiment-browser" className="sidebar__link">
-        Experiment Browser
-      </Link>
-      <Link to="/settings" className="sidebar__link">
-        Settings
-      </Link>
-    </div>
+    <Nav className="sidebar d-block rounded position-fixed m-2 light-bg">
+      {links.map((link, index) => (
+        <Nav.Link
+          key={index}
+          as={Link}
+          to={link.to}
+          className="sidebar__link p-4 secondary-fg"
+        >
+          {link.text}
+        </Nav.Link>
+      ))}
+    </Nav>
   );
 };
 
