@@ -1,4 +1,5 @@
 import { ChangeEvent, FC, useEffect, useState, useCallback } from "react";
+import { Form } from "react-bootstrap";
 
 type DropdownMenuProps = {
   onSelectFeatureConfigId: (featureId: string) => void;
@@ -23,18 +24,21 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
   }, []);
 
   return (
-    <div>
-      <select className="dropdown-button" onChange={handleChange}>
+    <Form.Group controlId="featureConfigSelect">
+      <Form.Select
+        onChange={handleChange}
+        className="grey-border rounded mb-2 p-2 ps-3 fs-6 font-monospace"
+      >
         <option key={0} value="">
           Select Feature
         </option>
-        {featureConfigs.map((featureId: string, index) => (
+        {featureConfigs.map((featureId: string, index: number) => (
           <option key={index + 1} value={featureId}>
             {featureId}
           </option>
         ))}
-      </select>
-    </div>
+      </Form.Select>
+    </Form.Group>
   );
 };
 

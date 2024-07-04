@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
+import { Table, Button, Container } from "react-bootstrap";
 
 interface NimbusEnrollment {
   slug: string;
@@ -53,54 +54,56 @@ const ExperimentStorePage: FC = () => {
   );
 
   return (
-    <div className="experiment-viewer">
-      <h1 className="experiment-viewer__title">Experiment Store</h1>
-      <div className="experiment-viewer__list">
-        <table>
-          <thead>
-            <tr>
-              <th>Experiment</th>
-              <th>featureIds</th>
-              <th>isRollout</th>
-              <th>Status</th>
-              <th>Options</th>
+    <Container>
+      <h1 className="my-3 fw-bold fs-3 primary-fg">Experiment Store</h1>
+      <Table hover>
+        <thead>
+          <tr>
+            <th className="text-center primary-fg light-bg">Experiment</th>
+            <th className="text-center primary-fg light-bg">featureIds</th>
+            <th className="text-center primary-fg light-bg">isRollout</th>
+            <th className="text-center primary-fg light-bg">Status</th>
+            <th className="text-center primary-fg light-bg">Options</th>
+          </tr>
+        </thead>
+        <tbody>
+          {experiments?.map((experiment: NimbusEnrollment, index: number) => (
+            <tr key={index}>
+              <td className="align-middle ps-0 py-3">
+                <strong>{experiment.slug}</strong> <br /> <br />
+                {experiment.userFacingName}: {experiment.userFacingDescription}
+              </td>
+              <td className="text-center align-middle px-4">
+                {experiment.featureIds.join(", ")}
+              </td>
+              <td className="text-center align-middle px-4">
+                {experiment.isRollout ? "Yes" : "No"}
+              </td>
+              <td className="text-center align-middle px-4">
+                {experiment.active ? "Active" : "Inactive"}
+              </td>
+              <td className="text-center align-middle px-4">
+                {experiment.active ? (
+                  <Button
+                    onClick={() => unenrollExperiment(experiment.slug)}
+                    className="option-button primary-fg px-2 py-1 rounded grey-border light-bg"
+                  >
+                    Unenroll
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => deleteExperiment(experiment.slug)}
+                    className="option-button primary-fg px-2 py-1 rounded grey-border light-bg"
+                  >
+                    Delete
+                  </Button>
+                )}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {experiments?.map((experiment: NimbusEnrollment, index: number) => (
-              <tr key={index}>
-                <td>
-                  <strong>{experiment.slug}</strong> <br />
-                  <br />
-                  {experiment.userFacingName}:{" "}
-                  {experiment.userFacingDescription}
-                </td>
-                <td>{experiment.featureIds.join(", ")}</td>
-                <td>{experiment.isRollout ? "Yes" : "No"}</td>
-                <td>{experiment.active ? "Active" : "Inactive"}</td>
-                <td>
-                  {experiment.active ? (
-                    <button
-                      className="experiment-viewer-list__button"
-                      onClick={() => unenrollExperiment(experiment.slug)}
-                    >
-                      Unenroll
-                    </button>
-                  ) : (
-                    <button
-                      className="experiment-viewer-list__button"
-                      onClick={() => deleteExperiment(experiment.slug)}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          ))}
+        </tbody>
+      </Table>
+    </Container>
   );
 };
 

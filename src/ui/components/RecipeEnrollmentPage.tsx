@@ -1,4 +1,5 @@
 import { ChangeEvent, FC, useState, useCallback } from "react";
+import { Form, Container } from "react-bootstrap";
 
 const MainPage: FC = () => {
   const [jsonInput, setJsonInput] = useState("");
@@ -31,17 +32,25 @@ const MainPage: FC = () => {
   }, [jsonInput, setJsonInput]);
 
   return (
-    <div className="main-content">
-      <textarea
-        value={jsonInput}
-        onChange={handleInputChange}
-        placeholder="Enter JSON here"
-        className="json-input"
-      />
-      <button onClick={handleEnrollClick} className="enroll-button">
-        Enroll
-      </button>
-    </div>
+    <Container className="main-content m-0 p-2">
+      <Form>
+        <Form.Group>
+          <Form.Control
+            as="textarea"
+            value={jsonInput}
+            onChange={handleInputChange}
+            placeholder="Enter JSON here"
+            className="text-input long-input rounded p-4 font-monospace fs-6 grey-border"
+          />
+        </Form.Group>
+        <input
+          onClick={handleEnrollClick}
+          value="Enroll"
+          type="submit"
+          className="mt-2 py-3 px-4 fs-5 border-0 w-100 rounded text-white"
+        />
+      </Form>
+    </Container>
   );
 };
 
