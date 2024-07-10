@@ -1,6 +1,8 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { Table, Button, Container } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
+
 interface NimbusEnrollment {
   slug: string;
   userFacingName: string;
@@ -12,6 +14,7 @@ interface NimbusEnrollment {
 
 const ExperimentStorePage: FC = () => {
   const [experiments, setExperiments] = useState<NimbusEnrollment[]>([]);
+  const { addToast } = useToastsContext();
 
   const fetchExperiments = useCallback(async () => {
     try {
@@ -19,9 +22,12 @@ const ExperimentStorePage: FC = () => {
         await browser.experiments.nimbus.getExperimentStore();
       setExperiments(experimentStore as NimbusEnrollment[]);
     } catch (error) {
-      console.error("Error fetching experiments:", error);
+      addToast(
+        `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
+        "danger",
+      );
     }
-  }, [experiments]);
+  }, [experiments, addToast]);
 
   useEffect(() => {
     void fetchExperiments();
@@ -31,26 +37,32 @@ const ExperimentStorePage: FC = () => {
     async (slug: string) => {
       try {
         await browser.experiments.nimbus.unenroll(slug);
-        alert("Unenrollment successful");
+        addToast("Unenrollment successful", "success");
         await fetchExperiments();
       } catch (error) {
-        console.error(`Error unenrolling from experiment ${slug}:`, error);
+        addToast(
+          `Error unenrolling from experiment: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     },
-    [fetchExperiments],
+    [fetchExperiments, addToast],
   );
 
   const deleteExperiment = useCallback(
     async (slug: string) => {
       try {
         await browser.experiments.nimbus.deleteInactiveEnrollment(slug);
-        alert("Deletion successful");
+        addToast("Deletion successful", "success");
         await fetchExperiments();
       } catch (error) {
-        console.error(`Error deleting experiment ${slug}:`, error);
+        addToast(
+          `Error deleting experiment: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     },
-    [fetchExperiments],
+    [fetchExperiments, addToast],
   );
 
   return (

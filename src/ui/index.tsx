@@ -16,12 +16,15 @@ import SettingsPage from "./components/SettingsPage";
 import JEXLDebuggerPage from "./components/JEXLDebuggerPage";
 import ExperimentBrowserPage from "./components/ExperimentBrowserPage";
 import ExperimentStorePage from "./components/ExperimentStorePage";
+import useToasts from "./hooks/useToasts";
+import Toasts from "./components/Toasts";
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("#app").forEach((el) => {
-    const root = createRoot(el);
-    root.render(
-      <StrictMode>
+const App = () => {
+  const toastCtx = useToasts();
+
+  return (
+    <StrictMode>
+      <Toasts.Provider context={toastCtx}>
         <Router>
           <NavigationBar />
           <Sidebar />
@@ -48,8 +51,16 @@ document.addEventListener("DOMContentLoaded", () => {
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </Container>
+          <Toasts />
         </Router>
-      </StrictMode>,
-    );
+      </Toasts.Provider>
+    </StrictMode>
+  );
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("#app").forEach((el) => {
+    const root = createRoot(el);
+    root.render(<App />);
   });
 });

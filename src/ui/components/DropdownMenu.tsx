@@ -1,12 +1,15 @@
 import { ChangeEvent, FC, useEffect, useState, useCallback } from "react";
 import { Form } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
+
 type DropdownMenuProps = {
   onSelectFeatureConfigId: (featureId: string) => void;
 };
 
 const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
   const [featureConfigs, setFeatureConfigs] = useState([]);
+  const { addToast } = useToastsContext();
 
   useEffect(() => {
     void (async () => {
@@ -14,10 +17,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
         const configs = await browser.experiments.nimbus.getFeatureConfigs();
         setFeatureConfigs(configs);
       } catch (error) {
-        console.error(error);
+        addToast(
+          `Error fetching feature configurations: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     })();
-  }, []);
+  }, [addToast]);
 
   const handleChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     onSelectFeatureConfigId(event.target.value);

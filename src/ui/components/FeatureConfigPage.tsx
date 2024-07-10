@@ -1,12 +1,14 @@
 import { ChangeEvent, FC, useState, useCallback } from "react";
-import { Form, Container, Row, Col } from "react-bootstrap";
+import { Form, Container, Button, Row, Col } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
 import DropdownMenu from "./DropdownMenu";
 
 const FeatureConfigPage: FC = () => {
   const [jsonInput, setJsonInput] = useState("");
   const [selectedFeatureId, setSelectedFeatureId] = useState("");
   const [isRollout, setIsRollout] = useState(false);
+  const { addToast } = useToastsContext();
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -28,11 +30,9 @@ const FeatureConfigPage: FC = () => {
 
   const handleEnrollClick = useCallback(async () => {
     if (selectedFeatureId === "") {
-      console.log("Invalid Input: Select feature");
-      alert("Invalid Input: Select feature");
+      addToast("Invalid Input: Select feature", "danger");
     } else if (jsonInput === "") {
-      console.log("Invalid Input: Enter JSON");
-      alert("Invalid Input: Enter JSON");
+      addToast("Invalid Input: Enter JSON", "danger");
     } else {
       try {
         const result = await browser.experiments.nimbus.enrollWithFeatureConfig(
@@ -42,18 +42,18 @@ const FeatureConfigPage: FC = () => {
         );
 
         if (result) {
-          console.log("Enrollment successful");
-          alert("Enrollment successful");
+          addToast("Enrollment successful", "success");
         } else {
-          console.log("Enrollment failed");
-          alert("Enrollment failed");
+          addToast("Enrollment failed", "danger");
         }
       } catch (error) {
-        console.error(error);
-        alert(error);
+        addToast(
+          `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     }
-  }, [jsonInput, selectedFeatureId, isRollout]);
+  }, [jsonInput, selectedFeatureId, isRollout, addToast]);
 
   return (
     <Container className="main-content p-2">
@@ -83,12 +83,12 @@ const FeatureConfigPage: FC = () => {
             className="text-input medium-input rounded p-3 font-monospace fs-6 grey-border"
           />
         </Form.Group>
-        <input
-          type="submit"
-          value="Enroll"
-          className="mt-2 py-3 px-4 fs-5 border-0 w-100 rounded text-white"
+        <Button
           onClick={handleEnrollClick}
-        />
+          className="mt-2 py-3 px-4 fs-5 border-0 w-100 rounded text-white dark-button"
+        >
+          Enroll
+        </Button>
       </Form>
     </Container>
   );

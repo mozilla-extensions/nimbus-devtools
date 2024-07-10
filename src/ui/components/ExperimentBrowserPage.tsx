@@ -2,6 +2,8 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { NimbusExperiment } from "@mozilla/nimbus-schemas";
 import { Table, Button, Container, Form, Row, Col } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
+
 const PROD_URL =
   "https://experimenter.services.mozilla.com/api/v6/experiments/";
 const STAGE_URL =
@@ -21,6 +23,7 @@ const ExperimentBrowserPage: FC = () => {
   const [selectedBranches, setSelectedBranches] = useState<{
     [key: string]: string;
   }>({});
+  const { addToast } = useToastsContext();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -36,10 +39,13 @@ const ExperimentBrowserPage: FC = () => {
         );
         setExperiments(fetchedExperiments);
       } catch (error) {
-        console.error("Error fetching experiments:", error);
+        addToast(
+          `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     },
-    [environment, status],
+    [environment, status, addToast],
   );
 
   useEffect(() => {
@@ -55,19 +61,18 @@ const ExperimentBrowserPage: FC = () => {
           branchSlug,
         );
         if (result) {
-          console.log("Enrollment successful");
-          alert("Enrollment successful");
+          addToast("Enrollment successful", "success");
         } else {
-          console.log("Enrollment failed");
-          alert("Enrollment failed");
+          addToast("Enrollment failed", "danger");
         }
       } catch (error) {
-        console.error(error);
-        alert(error);
+        addToast(
+          `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     } else {
-      console.log("Select a branch before enrolling");
-      alert("Select a branch before enrolling");
+      addToast("Select a branch before enrolling", "danger");
     }
   };
 
