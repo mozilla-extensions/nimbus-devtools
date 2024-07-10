@@ -1,6 +1,8 @@
 import { ChangeEvent, FC, useEffect, useState, useCallback } from "react";
 import { Form, Container, Button, Row, Col } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
+
 const LIVE_COLLECTION = "nimbus-desktop-experiments";
 const PREVIEW_COLLECTION = "nimbus-preview";
 
@@ -8,6 +10,7 @@ const SettingsPage: FC = () => {
   const [collectionId, setCollectionId] = useState("");
   const [customCollection, setCustomCollection] = useState("");
   const [forceSync, setForceSync] = useState(true);
+  const { addToast } = useToastsContext();
 
   useEffect(() => {
     void (async () => {
@@ -23,10 +26,13 @@ const SettingsPage: FC = () => {
           setCustomCollection(currentCollection);
         }
       } catch (error) {
-        console.error(error);
+        addToast(
+          `Error fetching current collection: ${(error as Error).message ?? String(error)}`,
+          "danger",
+        );
       }
     })();
-  }, []);
+  }, [addToast]);
 
   const handleCollectionChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -36,17 +42,23 @@ const SettingsPage: FC = () => {
         try {
           await browser.experiments.nimbus.setCollection(newCollectionId);
         } catch (error) {
-          console.error(error);
+          addToast(
+            `Error setting collection: ${(error as Error).message ?? String(error)}`,
+            "danger",
+          );
         }
       } else {
         try {
           await browser.experiments.nimbus.setCollection(customCollection);
         } catch (error) {
-          console.error(error);
+          addToast(
+            `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
+            "danger",
+          );
         }
       }
     },
-    [customCollection, collectionId, setCollectionId],
+    [customCollection, collectionId, setCollectionId, addToast],
   );
 
   const handleCustomChange = useCallback(
@@ -57,11 +69,14 @@ const SettingsPage: FC = () => {
         try {
           await browser.experiments.nimbus.setCollection(newCustomCollection);
         } catch (error) {
-          console.error(error);
+          addToast(
+            `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
+            "danger",
+          );
         }
       }
     },
-    [collectionId, customCollection, setCustomCollection],
+    [collectionId, customCollection, setCustomCollection, addToast],
   );
 
   const handleForceSyncChange = useCallback(
@@ -74,10 +89,14 @@ const SettingsPage: FC = () => {
   const handleUpdateClick = useCallback(async () => {
     try {
       await browser.experiments.nimbus.updateRecipes(forceSync);
+      addToast("Recipes updated successfully", "success");
     } catch (error) {
-      console.error(error);
+      addToast(
+        `Error updating recipes: ${(error as Error).message ?? String(error)}`,
+        "danger",
+      );
     }
-  }, [forceSync, setForceSync]);
+  }, [forceSync, setForceSync, addToast]);
 
   return (
     <Container fluid className="main-content py-4 p-2">
@@ -135,7 +154,7 @@ const SettingsPage: FC = () => {
                       collectionId === LIVE_COLLECTION ||
                       collectionId === PREVIEW_COLLECTION
                     }
-                    className="font-monospace fs-6,"
+                    className="font-monospace fs-6"
                   />
                 </Col>
               </Row>

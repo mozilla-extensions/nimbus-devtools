@@ -66,11 +66,11 @@ body, html {
     height: calc(100vh - 13.4rem);
 }
 
-input[type="submit"] {
+.dark-button {
     background-color: var(--colour-secondary);
 }
 
-input[type="submit"]:hover {
+.dark-button:hover {
     background-color: var(--colour-tertiary);
 }
 

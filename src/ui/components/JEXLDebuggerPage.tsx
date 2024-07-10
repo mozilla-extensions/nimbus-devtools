@@ -8,21 +8,26 @@ import {
 } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
+import { useToastsContext } from "../hooks/useToasts";
 import { evaluateJexl } from "../jexlParser";
 
 const JEXLDebuggerPage: FC = () => {
   const [clientContext, setClientContext] = useState({});
   const [jexlExpression, setJexlExpression] = useState("");
   const [output, setOutput] = useState("");
+  const { addToast } = useToastsContext();
 
   const fetchClientContext = useCallback(async () => {
     try {
       const context = await browser.experiments.nimbus.getClientContext();
       setClientContext(context);
     } catch (error) {
-      console.error("Error fetching client context:", error);
+      addToast(
+        `Error fetching client context: ${(error as Error).message ?? String(error)}`,
+        "danger",
+      );
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     void fetchClientContext();
@@ -44,10 +49,13 @@ const JEXLDebuggerPage: FC = () => {
         setOutput(result);
       }
     } catch (error) {
-      console.error(error);
       setOutput("Error evaluating expression");
+      addToast(
+        `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
+        "danger",
+      );
     }
-  }, [jexlExpression, clientContext]);
+  }, [jexlExpression, clientContext, addToast]);
 
   const memoizedClientContextEntries = useMemo(
     () => Object.entries(clientContext),
@@ -67,12 +75,12 @@ const JEXLDebuggerPage: FC = () => {
             className="text-input rounded p-3 font-monospace fs-6 grey-border"
             rows={8}
           />
-          <input
+          <Button
             onClick={handleEvaluateClick}
-            value="Evaluate"
-            type="submit"
-            className="mt-2 py-2 px-4 fs-6 border-0 w-100 rounded text-white"
-          />
+            className="mt-2 py-2 px-4 fs-6 border-0 w-100 rounded text-white dark-button"
+          >
+            Evaluate
+          </Button>
         </Col>
       </Row>
       <hr className="section-line mx-2 mb-2 mt-1" />
