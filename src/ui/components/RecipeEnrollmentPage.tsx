@@ -21,16 +21,16 @@ const RecipeEnrollmentPage: FC = () => {
       );
 
       if (result) {
-        addToast("Enrollment successful", "success");
+        addToast({ message: "Enrollment successful", variant: "success" });
         setJsonInput("");
       } else {
-        addToast("Enrollment failed", "danger");
+        addToast({ message: "Enrollment failed", variant: "danger" });
       }
     } catch (error) {
-      addToast(
-        `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-        "danger",
-      );
+      addToast({
+        message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+        variant: "danger",
+      });
     }
   }, [jsonInput, setJsonInput, addToast]);
 

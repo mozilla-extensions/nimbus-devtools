@@ -170,6 +170,26 @@
             "description": "The slug of the experiment to delete from the store."
           }
         ]
+      },
+
+      {
+        "name": "generateTestIds",
+        "type": "function",
+        "description": "Generate Normandy UserId respective to a branch for a specific experiment.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "recipe",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The recipe of the experiment to generate the UserId for."
+          },
+          {
+            "name": "branchSlug",
+            "type": "string",
+            "description": "The specific branch slug of the experiment."
+          }
+        ]
       }
     ],
     "events": []

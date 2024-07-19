@@ -5,12 +5,19 @@ import ToastContainer from "react-bootstrap/ToastContainer";
 import { ToastsContext, UseToasts, useToastsContext } from "../hooks/useToasts";
 
 function Toasts() {
-  const { toasts } = useToastsContext();
+  const { toasts, removeToast } = useToastsContext();
 
   return (
     <ToastContainer position="top-end" className="p-3 position-fixed">
       {toasts.map((toast) => (
-        <Toast key={toast.id} bg={toast.variant}>
+        <Toast
+          key={toast.id}
+          bg={toast.variant}
+          onClose={() => removeToast(toast.id)}
+          autohide={!toast.autohide}
+          delay={3500}
+        >
+          <Toast.Header closeButton></Toast.Header>
           <Toast.Body className="fs-6 p-3">{toast.message}</Toast.Body>
         </Toast>
       ))}

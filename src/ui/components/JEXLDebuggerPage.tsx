@@ -22,10 +22,10 @@ const JEXLDebuggerPage: FC = () => {
       const context = await browser.experiments.nimbus.getClientContext();
       setClientContext(context);
     } catch (error) {
-      addToast(
-        `Error fetching client context: ${(error as Error).message ?? String(error)}`,
-        "danger",
-      );
+      addToast({
+        message: `Error fetching client context: ${(error as Error).message ?? String(error)}`,
+        variant: "danger",
+      });
     }
   }, [addToast]);
 
@@ -50,10 +50,10 @@ const JEXLDebuggerPage: FC = () => {
       }
     } catch (error) {
       setOutput("Error evaluating expression");
-      addToast(
-        `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
-        "danger",
-      );
+      addToast({
+        message: `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
+        variant: "danger",
+      });
     }
   }, [jexlExpression, clientContext, addToast]);
 

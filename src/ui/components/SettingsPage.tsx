@@ -26,10 +26,10 @@ const SettingsPage: FC = () => {
           setCustomCollection(currentCollection);
         }
       } catch (error) {
-        addToast(
-          `Error fetching current collection: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error fetching current collection: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     })();
   }, [addToast]);
@@ -42,19 +42,19 @@ const SettingsPage: FC = () => {
         try {
           await browser.experiments.nimbus.setCollection(newCollectionId);
         } catch (error) {
-          addToast(
-            `Error setting collection: ${(error as Error).message ?? String(error)}`,
-            "danger",
-          );
+          addToast({
+            message: `Error setting collection: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          });
         }
       } else {
         try {
           await browser.experiments.nimbus.setCollection(customCollection);
         } catch (error) {
-          addToast(
-            `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
-            "danger",
-          );
+          addToast({
+            message: `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          });
         }
       }
     },
@@ -69,10 +69,10 @@ const SettingsPage: FC = () => {
         try {
           await browser.experiments.nimbus.setCollection(newCustomCollection);
         } catch (error) {
-          addToast(
-            `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
-            "danger",
-          );
+          addToast({
+            message: `Error setting custom collection: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          });
         }
       }
     },
@@ -89,17 +89,17 @@ const SettingsPage: FC = () => {
   const handleUpdateClick = useCallback(async () => {
     try {
       await browser.experiments.nimbus.updateRecipes(forceSync);
-      addToast("Recipes updated successfully", "success");
+      addToast({ message: "Recipes updated successfully", variant: "success" });
     } catch (error) {
-      addToast(
-        `Error updating recipes: ${(error as Error).message ?? String(error)}`,
-        "danger",
-      );
+      addToast({
+        message: `Error updating recipes: ${(error as Error).message ?? String(error)}`,
+        variant: "danger",
+      });
     }
   }, [forceSync, setForceSync, addToast]);
 
   return (
-    <Container fluid className="main-content py-4 p-2">
+    <Container fluid className="main-content py-4 p-2 overflow-hidden">
       <h2 className="primary-fg fw-bold ps-3 fs-3">Settings</h2>
       <hr className="primary-divider ms-3 mb-2 me-2" />
       <Form>

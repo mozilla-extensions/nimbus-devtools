@@ -1,6 +1,14 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { NimbusExperiment } from "@mozilla/nimbus-schemas";
-import { Table, Button, Container, Form, Row, Col } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Container,
+  Form,
+  Row,
+  Col,
+  Dropdown,
+} from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
 
@@ -39,10 +47,10 @@ const ExperimentBrowserPage: FC = () => {
         );
         setExperiments(fetchedExperiments);
       } catch (error) {
-        addToast(
-          `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     },
     [environment, status, addToast],
@@ -61,18 +69,56 @@ const ExperimentBrowserPage: FC = () => {
           branchSlug,
         );
         if (result) {
-          addToast("Enrollment successful", "success");
+          addToast({ message: "Enrollment successful", variant: "success" });
         } else {
-          addToast("Enrollment failed", "danger");
+          addToast({ message: "Enrollment failed", variant: "danger" });
         }
       } catch (error) {
-        addToast(
-          `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     } else {
-      addToast("Select a branch before enrolling", "danger");
+      addToast({
+        message: "Select a branch before enrolling",
+        variant: "danger",
+      });
+    }
+  };
+
+  const handleGenerateTestIds = async (
+    experimentId: string,
+    branchSlug: string,
+  ) => {
+    if (branchSlug) {
+      const recipe = experiments.find((exp) => exp.id === experimentId);
+      try {
+        const result = await browser.experiments.nimbus.generateTestIds(
+          recipe,
+          branchSlug,
+        );
+        if (result) {
+          await navigator.clipboard.writeText(result);
+          addToast({
+            message: `Id successfully generated and copied to clipboard. Test Id: ${result}`,
+            variant: "success",
+            autohide: true,
+          });
+        } else {
+          addToast({ message: "Test Id generation failed", variant: "danger" });
+        }
+      } catch (error) {
+        addToast({
+          message: `Error generating test Id: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
+      }
+    } else {
+      addToast({
+        message: "Select a branch before generating test Id",
+        variant: "danger",
+      });
     }
   };
 
@@ -129,7 +175,7 @@ const ExperimentBrowserPage: FC = () => {
             <th className="text-center primary-fg light-bg">Channel</th>
             <th className="text-center primary-fg light-bg">Version</th>
             <th className="text-center primary-fg light-bg">Status</th>
-            <th className="text-center primary-fg light-bg">Force Enroll</th>
+            <th className="text-center primary-fg light-bg">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -151,28 +197,63 @@ const ExperimentBrowserPage: FC = () => {
                   : "Enrollment Paused"}
               </td>
               <td className="text-end align-middle wide-column">
-                <Form.Select
-                  value={selectedBranches[experiment.id]}
-                  onChange={(e) =>
-                    handleBranchChange(experiment.id, e.target.value)
-                  }
-                  className="grey-border small-font rounded p-2 m-0 font-monospace"
-                >
-                  <option value="">Select branch</option>
-                  {experiment.branches?.map((branch) => (
-                    <option key={branch.slug} value={branch.slug}>
-                      {branch.slug}
-                    </option>
-                  ))}
-                </Form.Select>
-                <Button
-                  className="option-button primary-fg py-1 my-1 rounded small-font fw-bold grey-border light-bg"
-                  onClick={() =>
-                    handleEnroll(experiment.id, selectedBranches[experiment.id])
-                  }
-                >
-                  Enroll
-                </Button>
+                <Container className="d-flex align-items-center">
+                  <Form.Select
+                    value={selectedBranches[experiment.id]}
+                    onChange={(e) =>
+                      handleBranchChange(experiment.id, e.target.value)
+                    }
+                    className="grey-border small-font rounded p-2 m-0 font-monospace"
+                  >
+                    <option value="">Select branch</option>
+                    {experiment.branches?.map((branch) => (
+                      <option key={branch.slug} value={branch.slug}>
+                        {branch.slug}
+                      </option>
+                    ))}
+                  </Form.Select>
+                  {status === "Live" ? (
+                    <Dropdown>
+                      <Dropdown.Toggle className="option-button primary-fg py-2 my-1 mx-2 rounded small-font fw-bold grey-border light-bg">
+                        Actions
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item
+                          onClick={() =>
+                            handleEnroll(
+                              experiment.id,
+                              selectedBranches[experiment.id],
+                            )
+                          }
+                        >
+                          Force Enroll
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() =>
+                            handleGenerateTestIds(
+                              experiment.id,
+                              selectedBranches[experiment.id],
+                            )
+                          }
+                        >
+                          Generate Test IDs
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  ) : (
+                    <Button
+                      className="option-button primary-fg py-0 my-1 mx-1 rounded small-font fw-bold grey-border light-bg"
+                      onClick={() =>
+                        handleEnroll(
+                          experiment.id,
+                          selectedBranches[experiment.id],
+                        )
+                      }
+                    >
+                      Force Enroll
+                    </Button>
+                  )}
+                </Container>
               </td>
             </tr>
           ))}

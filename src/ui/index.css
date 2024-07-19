@@ -50,7 +50,6 @@ body, html {
     left: 15rem;
     top: 4.1rem;
     overflow-y: auto;
-    overflow-x: hidden;
 }
 
 .text-input {
@@ -122,7 +121,7 @@ pre {
 }
 
 .wide-column {
-    width: 10rem;
+    width: 18rem;
 }
 
 .grey-border {

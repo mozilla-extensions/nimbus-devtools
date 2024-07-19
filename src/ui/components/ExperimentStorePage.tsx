@@ -22,10 +22,10 @@ const ExperimentStorePage: FC = () => {
         await browser.experiments.nimbus.getExperimentStore();
       setExperiments(experimentStore as NimbusEnrollment[]);
     } catch (error) {
-      addToast(
-        `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
-        "danger",
-      );
+      addToast({
+        message: `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
+        variant: "danger",
+      });
     }
   }, [experiments, addToast]);
 
@@ -37,13 +37,13 @@ const ExperimentStorePage: FC = () => {
     async (slug: string) => {
       try {
         await browser.experiments.nimbus.unenroll(slug);
-        addToast("Unenrollment successful", "success");
+        addToast({ message: "Unenrollment successful", variant: "success" });
         await fetchExperiments();
       } catch (error) {
-        addToast(
-          `Error unenrolling from experiment: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error unenrolling from experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     },
     [fetchExperiments, addToast],
@@ -53,13 +53,13 @@ const ExperimentStorePage: FC = () => {
     async (slug: string) => {
       try {
         await browser.experiments.nimbus.deleteInactiveEnrollment(slug);
-        addToast("Deletion successful", "success");
+        addToast({ message: "Deletion successful", variant: "success" });
         await fetchExperiments();
       } catch (error) {
-        addToast(
-          `Error deleting experiment: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error deleting experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     },
     [fetchExperiments, addToast],
