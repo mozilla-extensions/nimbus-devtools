@@ -17,10 +17,10 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
         const configs = await browser.experiments.nimbus.getFeatureConfigs();
         setFeatureConfigs(configs);
       } catch (error) {
-        addToast(
-          `Error fetching feature configurations: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error fetching feature configurations: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     })();
   }, [addToast]);

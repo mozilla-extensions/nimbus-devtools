@@ -270,6 +270,16 @@ var nimbus = class extends ExtensionAPI {
               throw error;
             }
           },
+
+          async generateTestIds(recipe, branchSlug) {
+            try {
+              const result = await ExperimentManager.generateTestIds(recipe);
+              return result[branchSlug];
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          },
         },
       },
     };

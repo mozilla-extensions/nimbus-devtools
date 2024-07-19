@@ -85,4 +85,6 @@ declare namespace browser.experiments.nimbus {
   function unenroll(slug: string): Promise<void>;
 
   function deleteInactiveEnrollment(slug: string): Promise<void>;
+
+  function generateTestIds(recipe: object, branchSlug: string): Promise<string>;
 }

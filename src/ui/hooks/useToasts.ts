@@ -4,12 +4,20 @@ export interface Toast {
   id: string;
   message: string;
   variant: "success" | "danger";
+  autohide?: boolean;
 }
 
 export interface UseToasts {
   toasts: Toast[];
-  addToast: (message: string, variant: "success" | "danger") => void;
+  addToast: (params: AddToastParams) => void;
+  removeToast: (id: string) => void;
 }
+
+type AddToastParams = {
+  message: string;
+  variant: "success" | "danger";
+  autohide?: boolean;
+};
 
 export const ToastsContext = createContext<UseToasts>({} as UseToasts);
 
@@ -17,17 +25,21 @@ export default function useToasts(): UseToasts {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback(
-    (message: string, variant: "success" | "danger") => {
+    ({ message, variant, autohide = false }: AddToastParams) => {
       const id = window.crypto.randomUUID();
-      setToasts((oldToasts) => [...oldToasts, { id, message, variant }]);
-      setTimeout(() => {
-        setToasts((oldToasts) => oldToasts.filter((toast) => toast.id !== id));
-      }, 3500);
+      setToasts((oldToasts) => [
+        ...oldToasts,
+        { id, message, variant, autohide },
+      ]);
     },
     [],
   );
 
-  return { toasts, addToast };
+  const removeToast = useCallback((id: string) => {
+    setToasts((oldToasts) => oldToasts.filter((toast) => toast.id !== id));
+  }, []);
+
+  return { toasts, addToast, removeToast };
 }
 
 export function useToastsContext(): UseToasts {

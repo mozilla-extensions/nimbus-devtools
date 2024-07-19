@@ -30,9 +30,9 @@ const FeatureConfigPage: FC = () => {
 
   const handleEnrollClick = useCallback(async () => {
     if (selectedFeatureId === "") {
-      addToast("Invalid Input: Select feature", "danger");
+      addToast({ message: "Invalid Input: Select feature", variant: "danger" });
     } else if (jsonInput === "") {
-      addToast("Invalid Input: Enter JSON", "danger");
+      addToast({ message: "Invalid Input: Enter JSON", variant: "danger" });
     } else {
       try {
         const result = await browser.experiments.nimbus.enrollWithFeatureConfig(
@@ -42,21 +42,21 @@ const FeatureConfigPage: FC = () => {
         );
 
         if (result) {
-          addToast("Enrollment successful", "success");
+          addToast({ message: "Enrollment successful", variant: "success" });
         } else {
-          addToast("Enrollment failed", "danger");
+          addToast({ message: "Enrollment failed", variant: "danger" });
         }
       } catch (error) {
-        addToast(
-          `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-          "danger",
-        );
+        addToast({
+          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
       }
     }
   }, [jsonInput, selectedFeatureId, isRollout, addToast]);
 
   return (
-    <Container className="main-content p-2">
+    <Container className="main-content p-2 overflow-hidden">
       <Form>
         <Row className="align-items-stretch">
           <Col md={9}>
