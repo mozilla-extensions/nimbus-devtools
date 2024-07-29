@@ -13,6 +13,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
+  FilterExpressions:
+    "resource://gre/modules/components-utils/FilterExpressions.sys.mjs",
 });
 
 const { ExperimentManager } = ChromeUtils.importESModule(
@@ -20,9 +22,6 @@ const { ExperimentManager } = ChromeUtils.importESModule(
 );
 const { ExperimentAPI, NimbusFeatures } = ChromeUtils.importESModule(
   "resource://nimbus/ExperimentAPI.sys.mjs",
-);
-const { TargetingContext } = ChromeUtils.importESModule(
-  "resource://messaging-system/targeting/Targeting.sys.mjs",
 );
 const { AppConstants } = ChromeUtils.importESModule(
   "resource://gre/modules/AppConstants.sys.mjs",
@@ -126,11 +125,7 @@ var nimbus = class extends ExtensionAPI {
 
           async evaluateJEXL(expression, context = {}) {
             try {
-              const targetingContext = await new TargetingContext(context, {});
-
-              const result = await targetingContext.evalWithDefault(expression);
-
-              return result;
+              return await lazy.FilterExpressions.eval(expression, context);
             } catch (error) {
               console.error("Error evaluating expression:", error);
               throw error;
