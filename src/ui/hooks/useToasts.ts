@@ -25,7 +25,7 @@ export default function useToasts(): UseToasts {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback(
-    ({ message, variant, autohide = false }: AddToastParams) => {
+    ({ message, variant, autohide = true }: AddToastParams) => {
       const id = window.crypto.randomUUID();
       setToasts((oldToasts) => [
         ...oldToasts,

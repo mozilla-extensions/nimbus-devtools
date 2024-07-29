@@ -103,7 +103,7 @@ const ExperimentBrowserPage: FC = () => {
           addToast({
             message: `Id successfully generated and copied to clipboard. Test Id: ${result}`,
             variant: "success",
-            autohide: true,
+            autohide: false,
           });
         } else {
           addToast({ message: "Test Id generation failed", variant: "danger" });

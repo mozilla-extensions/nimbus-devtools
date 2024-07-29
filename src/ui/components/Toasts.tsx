@@ -14,7 +14,7 @@ function Toasts() {
           key={toast.id}
           bg={toast.variant}
           onClose={() => removeToast(toast.id)}
-          autohide={!toast.autohide}
+          autohide={toast.autohide}
           delay={3500}
         >
           <Toast.Header closeButton></Toast.Header>
