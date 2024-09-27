@@ -49,8 +49,14 @@ var nimbus = class extends ExtensionAPI {
             }
           },
 
-          async enrollWithFeatureConfig(featureId, featureValue, isRollout) {
+          async enrollWithFeatureConfig(
+            featureId,
+            featureValue,
+            isRollout,
+            forceEnroll,
+          ) {
             try {
+              const slug = `nimbus-devtools-${featureId}-${isRollout ? "rollout" : "experiment"}`;
               const recipe = JSON.parse(`{
                 "bucketConfig": {
                   "count": 1000,
@@ -75,16 +81,42 @@ var nimbus = class extends ExtensionAPI {
                 "featureIds": [
                   "${featureId}"
                 ],
-                "slug": "nimbus-devtools-${featureId}-enrollment",
+                "slug": "${slug}",
                 "userFacingName": "Nimbus Devtools ${featureId} Enrollment",
                 "userFacingDescription": "Testing the feature with feature ID: ${featureId}."
               }`);
 
+              const experimentStore = ExperimentManager.store.getAll();
+              const slugExistsInStore = experimentStore.some(
+                (experiment) => experiment.slug === recipe.slug,
+              );
+              const activeEnrollment =
+                experimentStore.find(
+                  (experiment) =>
+                    experiment.featureIds.includes(featureId) &&
+                    experiment.active,
+                )?.slug || null;
+
+              if (slugExistsInStore || activeEnrollment) {
+                if (!forceEnroll) {
+                  return {
+                    enrolled: false,
+                    error: { slugExistsInStore, activeEnrollment },
+                  };
+                }
+
+                if (activeEnrollment) {
+                  this.unenroll(activeEnrollment);
+                }
+                if (slugExistsInStore) {
+                  this.deleteInactiveEnrollment(slug);
+                }
+              }
               const result = await ExperimentManager.enroll(
                 recipe,
                 "nimbus-devtools",
               );
-              return result !== null;
+              return { enrolled: result !== null, error: null };
             } catch (error) {
               console.error(error);
               throw error;
