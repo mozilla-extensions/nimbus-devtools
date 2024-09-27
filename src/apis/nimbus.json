@@ -38,7 +38,12 @@
           {
             "name": "isRollout",
             "type": "boolean",
-            "description": "An boolean representing whether or not this should be a rollout."
+            "description": "A boolean representing whether or not this should be a rollout."
+          },
+          {
+            "name": "forceEnroll",
+            "type": "boolean",
+            "description": "A boolean representing whether or not the enrollment should be forced."
           }
         ]
       },
@@ -58,7 +63,6 @@
         "async": true,
         "parameters": []
       },
-
       {
         "name": "setCollection",
         "type": "function",
@@ -72,7 +76,6 @@
           }
         ]
       },
-
       {
         "name": "evaluateJEXL",
         "type": "function",
@@ -93,7 +96,6 @@
           }
         ]
       },
-
       {
         "name": "getClientContext",
         "type": "function",
@@ -101,7 +103,6 @@
         "async": true,
         "parameters": []
       },
-
       {
         "name": "updateRecipes",
         "type": "function",
@@ -115,7 +116,6 @@
           }
         ]
       },
-
       {
         "name": "forceEnroll",
         "type": "function",
@@ -135,7 +135,6 @@
           }
         ]
       },
-
       {
         "name": "getExperimentStore",
         "type": "function",
@@ -143,7 +142,6 @@
         "async": true,
         "parameters": []
       },
-
       {
         "name": "unenroll",
         "type": "function",
@@ -157,7 +155,6 @@
           }
         ]
       },
-
       {
         "name": "deleteInactiveEnrollment",
         "type": "function",
@@ -171,7 +168,6 @@
           }
         ]
       },
-
       {
         "name": "generateTestIds",
         "type": "function",

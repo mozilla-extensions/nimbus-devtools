@@ -1,14 +1,35 @@
-import { ChangeEvent, FC, useState, useCallback } from "react";
-import { Form, Container, Button, Row, Col } from "react-bootstrap";
+import { ChangeEvent, FC, useState, useCallback, useMemo } from "react";
+import { Form, Container, Button, Row, Col, Modal } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
 import DropdownMenu from "./DropdownMenu";
+
+type EnrollWithFeatureConfigResult =
+  | {
+      enrolled: true;
+      error: null;
+    }
+  | {
+      enrolled: false;
+      error: {
+        slugExistsInStore: boolean;
+        activeEnrollment: string | null;
+      };
+    };
 
 const FeatureConfigPage: FC = () => {
   const [jsonInput, setJsonInput] = useState("");
   const [selectedFeatureId, setSelectedFeatureId] = useState("");
   const [isRollout, setIsRollout] = useState(false);
+  const [enrollError, setEnrollError] =
+    useState<EnrollWithFeatureConfigResult["error"]>(null);
   const { addToast } = useToastsContext();
+
+  const slug = useMemo(() => {
+    return `nimbus-devtools-${selectedFeatureId}-${
+      isRollout ? "rollout" : "experiment"
+    }`;
+  }, [selectedFeatureId, isRollout]);
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -28,32 +49,99 @@ const FeatureConfigPage: FC = () => {
     [],
   );
 
-  const handleEnrollClick = useCallback(async () => {
-    if (selectedFeatureId === "") {
-      addToast({ message: "Invalid Input: Select feature", variant: "danger" });
-    } else if (jsonInput === "") {
-      addToast({ message: "Invalid Input: Enter JSON", variant: "danger" });
-    } else {
-      try {
-        const result = await browser.experiments.nimbus.enrollWithFeatureConfig(
-          selectedFeatureId,
-          JSON.parse(jsonInput) as object,
-          isRollout,
-        );
+  const handleEnrollClick = useCallback(
+    async (
+      event?: React.MouseEvent<HTMLButtonElement>,
+      forceEnroll = false,
+    ) => {
+      event?.preventDefault();
 
-        if (result) {
-          addToast({ message: "Enrollment successful", variant: "success" });
-        } else {
-          addToast({ message: "Enrollment failed", variant: "danger" });
-        }
-      } catch (error) {
+      if (selectedFeatureId === "") {
         addToast({
-          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          message: "Invalid Input: Select feature",
           variant: "danger",
         });
+      } else if (jsonInput === "") {
+        addToast({ message: "Invalid Input: Enter JSON", variant: "danger" });
+      } else {
+        try {
+          const result: EnrollWithFeatureConfigResult =
+            await browser.experiments.nimbus.enrollWithFeatureConfig(
+              selectedFeatureId,
+              JSON.parse(jsonInput) as object,
+              isRollout,
+              forceEnroll,
+            );
+
+          if (result.enrolled) {
+            addToast({ message: "Enrollment successful", variant: "success" });
+          } else if (result.error) {
+            setEnrollError(result.error);
+          }
+        } catch (error) {
+          addToast({
+            message: `Error enrolling into experiment: ${
+              (error as Error).message ?? String(error)
+            }`,
+            variant: "danger",
+          });
+        }
       }
+    },
+    [jsonInput, selectedFeatureId, isRollout, addToast],
+  );
+
+  const handleModalConfirm = useCallback(async () => {
+    setEnrollError(null);
+    await handleEnrollClick(null, true);
+  }, [handleEnrollClick, setEnrollError]);
+
+  const handleModalClose = useCallback(() => {
+    setEnrollError(null);
+  }, [setEnrollError]);
+
+  function EnrollmentError(
+    slug: string,
+    enrollError: EnrollWithFeatureConfigResult["error"],
+  ) {
+    if (!enrollError) {
+      return null;
     }
-  }, [jsonInput, selectedFeatureId, isRollout, addToast]);
+    const { activeEnrollment, slugExistsInStore } = enrollError;
+
+    if (activeEnrollment && slugExistsInStore) {
+      return (
+        <p>
+          There already is an enrollment for the feature:{" "}
+          <strong>{slug}</strong>. Would you like to proceed with force
+          enrollment by unenrolling, deleting, and re-enrolling into the new
+          configuration?
+        </p>
+      );
+    }
+
+    if (activeEnrollment) {
+      return (
+        <p>
+          There is an active enrollment for the feature: <strong>{slug}</strong>
+          . Would you like to unenroll from the active enrollment and re-enroll
+          into the new configuration?
+        </p>
+      );
+    }
+
+    if (slugExistsInStore) {
+      return (
+        <p>
+          There is an inactive enrollment stored for the feature:{" "}
+          <strong>{slug}</strong>. Would you like to delete the inactive
+          enrollment and re-enroll into the new configuration?
+        </p>
+      );
+    }
+
+    return null;
+  }
 
   return (
     <Container className="main-content p-2 overflow-hidden">
@@ -90,6 +178,21 @@ const FeatureConfigPage: FC = () => {
           Enroll
         </Button>
       </Form>
+
+      <Modal show={!!enrollError} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Force Enrollment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{EnrollmentError(slug, enrollError)}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleModalConfirm}>
+            Force Enroll
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
