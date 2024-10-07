@@ -14,6 +14,11 @@
             "type": "object",
             "additionalProperties": true,
             "description": "An object representing the experiment to enroll in."
+          },
+          {
+            "name": "forceEnroll",
+            "type": "boolean",
+            "description": "A boolean representing whether or not the enrollment should be forced."
           }
         ]
       },
