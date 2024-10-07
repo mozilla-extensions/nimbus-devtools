@@ -57,28 +57,31 @@ declare module "mozjexl/lib/parser/Parser" {
   }
 }
 
-declare namespace browser.experiments.nimbus {
-  type EnrollWithFeatureConfigResult =
-    | {
-        enrolled: true;
-        error: null;
-      }
-    | {
-        enrolled: false;
-        error: {
-          slugExistsInStore: boolean;
-          activeEnrollment: string | null;
-        };
+type EnrollInExperimentResult =
+  | {
+      enrolled: true;
+      error: null;
+    }
+  | {
+      enrolled: false;
+      error: {
+        slugExistsInStore: boolean;
+        activeEnrollment: string | null;
       };
+    };
 
-  function enrollInExperiment(jsonData: object): Promise<boolean>;
+declare namespace browser.experiments.nimbus {
+  function enrollInExperiment(
+    jsonData: object,
+    forceEnroll: boolean,
+  ): Promise<EnrollInExperimentResult>;
 
   function enrollWithFeatureConfig(
     featureId: string,
     featureValue: object,
     isRollout: boolean,
     forceEnroll: boolean,
-  ): Promise<EnrollWithFeatureConfigResult>;
+  ): Promise<EnrollInExperimentResult>;
 
   function getFeatureConfigs(): Promise<string[]>;
 
