@@ -35,13 +35,39 @@ var nimbus = class extends ExtensionAPI {
     return {
       experiments: {
         nimbus: {
-          async enrollInExperiment(jsonData) {
+          async enrollInExperiment(jsonData, forceEnroll) {
             try {
+              const slugExistsInStore = ExperimentManager.store
+                .getAll()
+                .some((experiment) => experiment.slug === jsonData.slug);
+              const activeEnrollment =
+                ExperimentManager.store
+                  .getAll()
+                  .find(
+                    (experiment) =>
+                      experiment.slug === jsonData.slug && experiment.active,
+                  )?.slug ?? null;
+              if (slugExistsInStore || activeEnrollment) {
+                if (!forceEnroll) {
+                  return {
+                    enrolled: false,
+                    error: { slugExistsInStore, activeEnrollment },
+                  };
+                }
+
+                if (activeEnrollment) {
+                  this.unenroll(activeEnrollment);
+                }
+                if (slugExistsInStore) {
+                  this.deleteInactiveEnrollment(jsonData.slug);
+                }
+              }
+
               const result = await ExperimentManager.enroll(
                 jsonData,
                 "nimbus-devtools",
               );
-              return result !== null;
+              return { enrolled: result !== null, error: null };
             } catch (error) {
               console.error(error);
               throw error;
@@ -85,16 +111,17 @@ var nimbus = class extends ExtensionAPI {
                 "userFacingDescription": "Testing the feature with feature ID: ${featureId}."
               }`);
 
-              const experimentStore = ExperimentManager.store.getAll();
-              const slugExistsInStore = experimentStore.some(
-                (experiment) => experiment.slug === recipe.slug,
-              );
+              const slugExistsInStore = ExperimentManager.store
+                .getAll()
+                .some((experiment) => experiment.slug === recipe.slug);
               const activeEnrollment =
-                experimentStore.find(
-                  (experiment) =>
-                    experiment.featureIds.includes(featureId) &&
-                    experiment.active,
-                )?.slug || null;
+                ExperimentManager.store
+                  .getAll()
+                  .find(
+                    (experiment) =>
+                      experiment.featureIds.includes(featureId) &&
+                      experiment.active,
+                  )?.slug ?? null;
 
               if (slugExistsInStore || activeEnrollment) {
                 if (!forceEnroll) {
