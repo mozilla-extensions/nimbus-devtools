@@ -2,6 +2,7 @@ import { ChangeEvent, FC, useState, useCallback } from "react";
 import { Form, Container, Button, Modal } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
+import { sanitizeJsonInput } from "../utils/sanitization";
 import EnrollmentError from "./EnrollmentError";
 
 type EnrollError = EnrollInExperimentResult["error"] & { slug: string };
@@ -14,7 +15,9 @@ const RecipeEnrollmentPage: FC = () => {
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setJsonInput(event.target.value);
+      const rawValue = event.target.value;
+      const sanitizedValue = sanitizeJsonInput(rawValue);
+      setJsonInput(sanitizedValue);
     },
     [setJsonInput],
   );

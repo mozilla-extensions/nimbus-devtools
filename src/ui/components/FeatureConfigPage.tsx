@@ -2,6 +2,7 @@ import { ChangeEvent, FC, useState, useCallback, useMemo } from "react";
 import { Form, Container, Button, Row, Col, Modal } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
+import { sanitizeJsonInput } from "../utils/sanitization";
 import DropdownMenu from "./DropdownMenu";
 import EnrollmentError from "./EnrollmentError";
 
@@ -21,7 +22,9 @@ const FeatureConfigPage: FC = () => {
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setJsonInput(event.target.value);
+      const rawValue = event.target.value;
+      const sanitizedValue = sanitizeJsonInput(rawValue);
+      setJsonInput(sanitizedValue);
     },
     [],
   );
