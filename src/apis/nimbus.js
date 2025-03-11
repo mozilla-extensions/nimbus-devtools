@@ -26,7 +26,7 @@ const { ExperimentAPI, NimbusFeatures } = ChromeUtils.importESModule(
 const { AppConstants } = ChromeUtils.importESModule(
   "resource://gre/modules/AppConstants.sys.mjs",
 );
-const { _RemoteSettingsExperimentLoader } = ChromeUtils.importESModule(
+const { RemoteSettingsExperimentLoader } = ChromeUtils.importESModule(
   "resource://nimbus/lib/RemoteSettingsExperimentLoader.sys.mjs",
 );
 
@@ -274,8 +274,9 @@ var nimbus = class extends ExtensionAPI {
 
           async updateRecipes(forceSync) {
             try {
-              const loader = new _RemoteSettingsExperimentLoader();
-              await loader.updateRecipes("devtools", { forceSync });
+              await RemoteSettingsExperimentLoader.updateRecipes("devtools", {
+                forceSync,
+              });
             } catch (error) {
               console.error(error);
               throw error;
