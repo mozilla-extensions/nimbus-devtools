@@ -152,7 +152,7 @@ var nimbus = class extends ExtensionAPI {
           async getFeatureConfigs() {
             try {
               await ExperimentAPI.ready();
-              return Object.keys(NimbusFeatures);
+              return Object.keys(NimbusFeatures).sort();
             } catch (error) {
               console.error(error);
               throw error;
