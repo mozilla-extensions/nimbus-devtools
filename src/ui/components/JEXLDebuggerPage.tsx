@@ -315,7 +315,7 @@ const JEXLDebuggerPage: FC = () => {
             onClick={fetchClientContext}
             className="option-button primary-fg py-2 px-3 rounded small-font fw-bold mb-3 grey-border light-bg"
           >
-            Refresh Context
+            Reset Context
           </Button>
           {Object.entries(originalContext).map(([key]) => (
             <Row key={key} className="mb-4 d-flex align-items-center">
