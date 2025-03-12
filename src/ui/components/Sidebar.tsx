@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 
 const links = [
-  { to: "/experiment-json", text: "JSON Enrollment" },
+  { to: "/experiment-json", text: "Recipe Enrollment" },
   {
     to: "/experiment-feature-config",
     text: "Feature Configuration Enrollment",
