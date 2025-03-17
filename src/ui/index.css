@@ -43,6 +43,11 @@ body, html {
     background-color: var(--colour-primary-medium);
 }
 
+.sidebar__link.active {
+    background-color: var(--colour-primary);
+    color: var(--colour-primary-light);
+}
+
 .main-content {
     width: calc(100% - 15rem);
     height: calc(100% - 4.7rem);

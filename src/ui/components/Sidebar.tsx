@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 
 const links = [
@@ -15,18 +15,26 @@ const links = [
 ];
 
 const Sidebar: FC = () => {
+  const location = useLocation();
+
   return (
     <Nav className="sidebar d-block rounded position-fixed m-2 light-bg">
-      {links.map((link, index) => (
-        <Nav.Link
-          key={index}
-          as={Link}
-          to={link.to}
-          className="sidebar__link p-4 secondary-fg"
-        >
-          {link.text}
-        </Nav.Link>
-      ))}
+      {links.map((link, index) => {
+        const linkIsActive =
+          location.pathname === link.to ||
+          (location.pathname === "/" && link.to === "/experiment-json");
+
+        return (
+          <Nav.Link
+            key={index}
+            as={Link}
+            to={link.to}
+            className={`sidebar__link p-4 secondary-fg ${linkIsActive ? "active" : ""}`}
+          >
+            {link.text}
+          </Nav.Link>
+        );
+      })}
     </Nav>
   );
 };
