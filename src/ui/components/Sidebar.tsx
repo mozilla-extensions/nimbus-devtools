@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 
 const links = [
@@ -18,14 +18,15 @@ const Sidebar: FC = () => {
   return (
     <Nav className="sidebar d-block rounded position-fixed m-2 light-bg">
       {links.map((link, index) => (
-        <Nav.Link
+        <NavLink
           key={index}
-          as={Link}
           to={link.to}
-          className="sidebar__link p-4 secondary-fg"
+          className={({ isActive }) =>
+            `sidebar__link p-4 d-block secondary-fg text-decoration-none ${isActive ? "active" : ""}`
+          }
         >
           {link.text}
-        </Nav.Link>
+        </NavLink>
       ))}
     </Nav>
   );
