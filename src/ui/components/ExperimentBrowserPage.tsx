@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { NimbusExperiment } from "@mozilla/nimbus-schemas";
 import {
   Table,
@@ -10,7 +10,7 @@ import {
   Dropdown,
 } from "react-bootstrap";
 
-import { useToastsContext } from "../hooks/useToasts";
+import { AddToastParams, useToastsContext } from "../hooks/useToasts";
 
 const PROD_URL =
   "https://experimenter.services.mozilla.com/api/v6/experiments/";
@@ -24,13 +24,91 @@ enum Environment {
   STAGE = "stage",
 }
 
+const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
+  experiment,
+}) => {
+  const { addToast } = useToastsContext();
+  const branchSlugs = useMemo(
+    () => experiment.branches?.map((b) => b.slug),
+    [experiment],
+  );
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+
+  const branchSlugOptions = useMemo(
+    () =>
+      branchSlugs.map((slug) => (
+        <option key={slug} value={slug}>
+          {slug}
+        </option>
+      )),
+    [branchSlugs],
+  );
+
+  const onSelectedBranchChanged = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedBranch(e.target.value);
+    },
+    [setSelectedBranch],
+  );
+
+  const handleGenerateTestIds = useCallback(async () => {
+    const toast = await tryGenerateTestId(experiment, selectedBranch);
+    addToast(toast);
+  }, [experiment, selectedBranch, addToast]);
+
+  const handleEnroll = useCallback(async () => {
+    const toast = await tryEnroll(experiment, selectedBranch);
+    addToast(toast);
+  }, [experiment, selectedBranch, addToast]);
+
+  return (
+    <tr>
+      <td className="align-middle ps-0 py-3 w-50">
+        <strong>{experiment.userFacingName}</strong>:{" "}
+        {experiment.userFacingDescription}
+      </td>
+      <td className="text-center align-middle px-2">{experiment.channel}</td>
+      <td className="text-center align-middle px-2">
+        {experiment.schemaVersion}
+      </td>
+      <td className="text-center align-middle px-2">
+        {experiment.isEnrollmentPaused ? "Enrolling" : "Enrollment Paused"}
+      </td>
+      <td className="text-end align-middle wide-column">
+        <Container className="d-flex align-items-center">
+          <Form.Select
+            value={selectedBranch}
+            onChange={onSelectedBranchChanged}
+            className="grey-border small-font rounded p-2 m-0 font-monospace"
+          >
+            <option value="">Select branch</option>
+            {branchSlugOptions}
+          </Form.Select>
+          <Dropdown>
+            <Dropdown.Toggle
+              variant={!selectedBranch ? "secondary" : "primary"}
+              className="option-button primary-fg mx-2 py-2 px-3 rounded small-font fw-bold grey-border light-bg"
+              disabled={!selectedBranch}
+            >
+              Actions
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={handleEnroll}>Force Enroll</Dropdown.Item>
+              <Dropdown.Item onClick={handleGenerateTestIds}>
+                Generate Test IDs
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </Container>
+      </td>
+    </tr>
+  );
+};
+
 const ExperimentBrowserPage: FC = () => {
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
   const [experiments, setExperiments] = useState<NimbusExperiment[]>([]);
-  const [selectedBranches, setSelectedBranches] = useState<{
-    [key: string]: string;
-  }>({});
   const { addToast } = useToastsContext();
 
   const fetchExperiments = useCallback(
@@ -60,74 +138,13 @@ const ExperimentBrowserPage: FC = () => {
     void fetchExperiments();
   }, [fetchExperiments]);
 
-  const handleEnroll = async (experimentId: string, branchSlug: string) => {
-    if (branchSlug) {
-      const recipe = experiments.find((exp) => exp.id === experimentId);
-      try {
-        const result = await browser.experiments.nimbus.forceEnroll(
-          recipe,
-          branchSlug,
-        );
-        if (result) {
-          addToast({ message: "Enrollment successful", variant: "success" });
-        } else {
-          addToast({ message: "Enrollment failed", variant: "danger" });
-        }
-      } catch (error) {
-        addToast({
-          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    } else {
-      addToast({
-        message: "Select a branch before enrolling",
-        variant: "danger",
-      });
-    }
-  };
-
-  const handleGenerateTestIds = async (
-    experimentId: string,
-    branchSlug: string,
-  ) => {
-    if (branchSlug) {
-      const recipe = experiments.find((exp) => exp.id === experimentId);
-      try {
-        const result = await browser.experiments.nimbus.generateTestIds(
-          recipe,
-          branchSlug,
-        );
-        if (result) {
-          await navigator.clipboard.writeText(result);
-          addToast({
-            message: `Id successfully generated and copied to clipboard. Test Id: ${result}`,
-            variant: "success",
-            autohide: false,
-          });
-        } else {
-          addToast({ message: "Test Id generation failed", variant: "danger" });
-        }
-      } catch (error) {
-        addToast({
-          message: `Error generating test Id: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    } else {
-      addToast({
-        message: "Select a branch before generating test Id",
-        variant: "danger",
-      });
-    }
-  };
-
-  const handleBranchChange = (experimentId: string, branchSlug: string) => {
-    setSelectedBranches((prevSelectedBranches) => ({
-      ...prevSelectedBranches,
-      [experimentId]: branchSlug,
-    }));
-  };
+  const experimentRows = useMemo(
+    () =>
+      experiments.map((experiment) => (
+        <ExperimentRow key={experiment.slug} experiment={experiment} />
+      )),
+    [experiments],
+  );
 
   return (
     <Container>
@@ -178,89 +195,59 @@ const ExperimentBrowserPage: FC = () => {
             <th className="text-center primary-fg light-bg">Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {experiments.map((experiment) => (
-            <tr key={experiment.id}>
-              <td className="align-middle ps-0 py-3 w-50">
-                <strong>{experiment.userFacingName}</strong>:{" "}
-                {experiment.userFacingDescription}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.channel}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.schemaVersion}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.isEnrollmentPaused
-                  ? "Enrolling"
-                  : "Enrollment Paused"}
-              </td>
-              <td className="text-end align-middle wide-column">
-                <Container className="d-flex align-items-center">
-                  <Form.Select
-                    value={selectedBranches[experiment.id]}
-                    onChange={(e) =>
-                      handleBranchChange(experiment.id, e.target.value)
-                    }
-                    className="grey-border small-font rounded p-2 m-0 font-monospace"
-                  >
-                    <option value="">Select branch</option>
-                    {experiment.branches?.map((branch) => (
-                      <option key={branch.slug} value={branch.slug}>
-                        {branch.slug}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {status === "Live" ? (
-                    <Dropdown>
-                      <Dropdown.Toggle className="option-button primary-fg py-2 my-1 mx-2 rounded small-font fw-bold grey-border light-bg">
-                        Actions
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item
-                          onClick={() =>
-                            handleEnroll(
-                              experiment.id,
-                              selectedBranches[experiment.id],
-                            )
-                          }
-                        >
-                          Force Enroll
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() =>
-                            handleGenerateTestIds(
-                              experiment.id,
-                              selectedBranches[experiment.id],
-                            )
-                          }
-                        >
-                          Generate Test IDs
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  ) : (
-                    <Button
-                      className="option-button primary-fg py-0 my-1 mx-1 rounded small-font fw-bold grey-border light-bg"
-                      onClick={() =>
-                        handleEnroll(
-                          experiment.id,
-                          selectedBranches[experiment.id],
-                        )
-                      }
-                    >
-                      Force Enroll
-                    </Button>
-                  )}
-                </Container>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+        <tbody>{experimentRows}</tbody>
       </Table>
     </Container>
   );
 };
+
+async function tryEnroll(
+  experiment: NimbusExperiment,
+  branchSlug: string,
+): Promise<AddToastParams> {
+  try {
+    const enrolled = await browser.experiments.nimbus.forceEnroll(
+      experiment,
+      branchSlug,
+    );
+    if (enrolled) {
+      return { message: "Enrollment successful", variant: "success" };
+    } else {
+      return { message: "Enrollment failed", variant: "danger" };
+    }
+  } catch (error) {
+    return {
+      message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+      variant: "danger",
+    };
+  }
+}
+
+async function tryGenerateTestId(
+  experiment: NimbusExperiment,
+  branchSlug: string,
+): Promise<AddToastParams> {
+  try {
+    const result = await browser.experiments.nimbus.generateTestIds(
+      experiment,
+      branchSlug,
+    );
+    if (result) {
+      await navigator.clipboard.writeText(result);
+      return {
+        message: `Id copied to clipboard. Test Id: ${result}`,
+        variant: "success",
+        autohide: false,
+      };
+    } else {
+      return { message: "Test Id generation failed", variant: "danger" };
+    }
+  } catch (error) {
+    return {
+      message: `Error generating test Id: ${(error as Error).message ?? String(error)}`,
+      variant: "danger",
+    };
+  }
+}
 
 export default ExperimentBrowserPage;
