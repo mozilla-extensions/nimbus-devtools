@@ -13,7 +13,7 @@ export interface UseToasts {
   removeToast: (id: string) => void;
 }
 
-type AddToastParams = {
+export type AddToastParams = {
   message: string;
   variant: "success" | "danger";
   autohide?: boolean;
