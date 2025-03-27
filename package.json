@@ -50,7 +50,7 @@
     "prettier": "^3.0.0",
     "typescript": "^5.4.5",
     "watcher": "^2.2.2",
-    "web-ext": "^8.1.0",
+    "web-ext": "^8.5.0",
     "web-ext-types": "^3.2.1"
   },
   "dependencies": {
