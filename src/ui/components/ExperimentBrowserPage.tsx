@@ -60,67 +60,73 @@ const ExperimentBrowserPage: FC = () => {
     void fetchExperiments();
   }, [fetchExperiments]);
 
-  const handleEnroll = async (experimentId: string, branchSlug: string) => {
-    if (branchSlug) {
-      const recipe = experiments.find((exp) => exp.id === experimentId);
-      try {
-        const result = await browser.experiments.nimbus.forceEnroll(
-          recipe,
-          branchSlug,
-        );
-        if (result) {
-          addToast({ message: "Enrollment successful", variant: "success" });
-        } else {
-          addToast({ message: "Enrollment failed", variant: "danger" });
-        }
-      } catch (error) {
-        addToast({
-          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    } else {
-      addToast({
-        message: "Select a branch before enrolling",
-        variant: "danger",
-      });
-    }
-  };
-
-  const handleGenerateTestIds = async (
-    experimentId: string,
-    branchSlug: string,
-  ) => {
-    if (branchSlug) {
-      const recipe = experiments.find((exp) => exp.id === experimentId);
-      try {
-        const result = await browser.experiments.nimbus.generateTestIds(
-          recipe,
-          branchSlug,
-        );
-        if (result) {
-          await navigator.clipboard.writeText(result);
+  const handleEnroll = useCallback(
+    async (experimentId: string, branchSlug: string) => {
+      if (branchSlug) {
+        const recipe = experiments.find((exp) => exp.id === experimentId);
+        try {
+          const result = await browser.experiments.nimbus.forceEnroll(
+            recipe,
+            branchSlug,
+          );
+          if (result) {
+            addToast({ message: "Enrollment successful", variant: "success" });
+          } else {
+            addToast({ message: "Enrollment failed", variant: "danger" });
+          }
+        } catch (error) {
           addToast({
-            message: `Id successfully generated and copied to clipboard. Test Id: ${result}`,
-            variant: "success",
-            autohide: false,
+            message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
           });
-        } else {
-          addToast({ message: "Test Id generation failed", variant: "danger" });
         }
-      } catch (error) {
+      } else {
         addToast({
-          message: `Error generating test Id: ${(error as Error).message ?? String(error)}`,
+          message: "Select a branch before enrolling",
           variant: "danger",
         });
       }
-    } else {
-      addToast({
-        message: "Select a branch before generating test Id",
-        variant: "danger",
-      });
-    }
-  };
+    },
+    [experiments, addToast],
+  );
+
+  const handleGenerateTestIds = useCallback(
+    async (experimentId: string, branchSlug: string) => {
+      if (branchSlug) {
+        const recipe = experiments.find((exp) => exp.id === experimentId);
+        try {
+          const result = await browser.experiments.nimbus.generateTestIds(
+            recipe,
+            branchSlug,
+          );
+          if (result) {
+            await navigator.clipboard.writeText(result);
+            addToast({
+              message: `Id successfully generated and copied to clipboard. Test Id: ${result}`,
+              variant: "success",
+              autohide: false,
+            });
+          } else {
+            addToast({
+              message: "Test Id generation failed",
+              variant: "danger",
+            });
+          }
+        } catch (error) {
+          addToast({
+            message: `Error generating test Id: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          });
+        }
+      } else {
+        addToast({
+          message: "Select a branch before generating test Id",
+          variant: "danger",
+        });
+      }
+    },
+    [experiments, addToast],
+  );
 
   const handleBranchChange = (experimentId: string, branchSlug: string) => {
     setSelectedBranches((prevSelectedBranches) => ({
@@ -179,84 +185,67 @@ const ExperimentBrowserPage: FC = () => {
           </tr>
         </thead>
         <tbody>
-          {experiments.map((experiment) => (
-            <tr key={experiment.id}>
-              <td className="align-middle ps-0 py-3 w-50">
-                <strong>{experiment.userFacingName}</strong>:{" "}
-                {experiment.userFacingDescription}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.channel}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.schemaVersion}
-              </td>
-              <td className="text-center align-middle px-2">
-                {experiment.isEnrollmentPaused
-                  ? "Enrolling"
-                  : "Enrollment Paused"}
-              </td>
-              <td className="text-end align-middle wide-column">
-                <Container className="d-flex align-items-center">
-                  <Form.Select
-                    value={selectedBranches[experiment.id]}
-                    onChange={(e) =>
-                      handleBranchChange(experiment.id, e.target.value)
-                    }
-                    className="grey-border small-font rounded p-2 m-0 font-monospace"
-                  >
-                    <option value="">Select branch</option>
-                    {experiment.branches?.map((branch) => (
-                      <option key={branch.slug} value={branch.slug}>
-                        {branch.slug}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {status === "Live" ? (
+          {experiments.map((experiment) => {
+            const onEnroll = () =>
+              handleEnroll(experiment.id, selectedBranches[experiment.id]);
+            const onGenerateTestId = () =>
+              handleGenerateTestIds(
+                experiment.id,
+                selectedBranches[experiment.id],
+              );
+
+            return (
+              <tr key={experiment.id}>
+                <td className="align-middle ps-0 py-3 w-50">
+                  <strong>{experiment.userFacingName}</strong>:{" "}
+                  {experiment.userFacingDescription}
+                </td>
+                <td className="text-center align-middle px-2">
+                  {experiment.channel}
+                </td>
+                <td className="text-center align-middle px-2">
+                  {experiment.schemaVersion}
+                </td>
+                <td className="text-center align-middle px-2">
+                  {experiment.isEnrollmentPaused
+                    ? "Enrolling"
+                    : "Enrollment Paused"}
+                </td>
+                <td className="text-end align-middle wide-column">
+                  <Container className="d-flex align-items-center">
+                    <Form.Select
+                      value={selectedBranches[experiment.id]}
+                      onChange={(e) =>
+                        handleBranchChange(experiment.id, e.target.value)
+                      }
+                      className="grey-border small-font rounded p-2 m-0 font-monospace"
+                    >
+                      <option value="">Select branch</option>
+                      {experiment.branches?.map((branch) => (
+                        <option key={branch.slug} value={branch.slug}>
+                          {branch.slug}
+                        </option>
+                      ))}
+                    </Form.Select>
+
                     <Dropdown>
                       <Dropdown.Toggle className="option-button primary-fg py-2 my-1 mx-2 rounded small-font fw-bold grey-border light-bg">
                         Actions
                       </Dropdown.Toggle>
                       <Dropdown.Menu>
-                        <Dropdown.Item
-                          onClick={() =>
-                            handleEnroll(
-                              experiment.id,
-                              selectedBranches[experiment.id],
-                            )
-                          }
-                        >
+                        <Dropdown.Item onClick={onEnroll}>
                           Force Enroll
                         </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() =>
-                            handleGenerateTestIds(
-                              experiment.id,
-                              selectedBranches[experiment.id],
-                            )
-                          }
-                        >
+                        <Dropdown.Item onClick={onGenerateTestId}>
                           Generate Test IDs
                         </Dropdown.Item>
                       </Dropdown.Menu>
                     </Dropdown>
-                  ) : (
-                    <Button
-                      className="option-button primary-fg py-0 my-1 mx-1 rounded small-font fw-bold grey-border light-bg"
-                      onClick={() =>
-                        handleEnroll(
-                          experiment.id,
-                          selectedBranches[experiment.id],
-                        )
-                      }
-                    >
-                      Force Enroll
-                    </Button>
-                  )}
-                </Container>
-              </td>
-            </tr>
-          ))}
+                  </Container>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
     </Container>
