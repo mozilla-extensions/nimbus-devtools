@@ -5,7 +5,12 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { Container } from "react-bootstrap";
 
 import NavigationBar from "./components/NavigationBar";
@@ -30,7 +35,10 @@ const App = () => {
           <Sidebar />
           <Container className="main-content">
             <Routes>
-              <Route path="/" element={<RecipeEnrollmentPage />} />
+              <Route
+                path="/"
+                element={<Navigate to="/experiment-json" replace />}
+              />
               <Route
                 path="/experiment-json"
                 element={<RecipeEnrollmentPage />}
