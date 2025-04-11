@@ -3,8 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "nimbus" }]*/
-
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {

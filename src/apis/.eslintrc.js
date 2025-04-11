@@ -5,4 +5,7 @@ module.exports = {
     ExtensionAPI: true,
     ExtensionError: true,
   },
+  rules: {
+    "no-unused-vars": ["error", { varsIgnorePattern: "nimbus" }],
+  },
 };
