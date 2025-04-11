@@ -9,26 +9,19 @@ const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
   ASRouterTargeting: "resource:///modules/asrouter/ASRouterTargeting.sys.mjs",
+  AppConstants: "resource://gre/modules/AppConstants.sys.mjs",
   ClientEnvironment: "resource://normandy/lib/ClientEnvironment.sys.mjs",
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
-  TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
+  ExperimentAPI: "resource://nimbus/ExperimentAPI.sys.mjs",
+  ExperimentManager: "resource://nimbus/lib/ExperimentManager.sys.mjs",
   FilterExpressions:
     "resource://gre/modules/components-utils/FilterExpressions.sys.mjs",
+  NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
+  RemoteSettingsExperimentLoader:
+    "resource://nimbus/lib/RemoteSettingsExperimentLoader.sys.mjs",
+  TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
 });
-
-const { ExperimentManager } = ChromeUtils.importESModule(
-  "resource://nimbus/lib/ExperimentManager.sys.mjs",
-);
-const { ExperimentAPI, NimbusFeatures } = ChromeUtils.importESModule(
-  "resource://nimbus/ExperimentAPI.sys.mjs",
-);
-const { AppConstants } = ChromeUtils.importESModule(
-  "resource://gre/modules/AppConstants.sys.mjs",
-);
-const { RemoteSettingsExperimentLoader } = ChromeUtils.importESModule(
-  "resource://nimbus/lib/RemoteSettingsExperimentLoader.sys.mjs",
-);
 
 var nimbus = class extends ExtensionAPI {
   getAPI() {
@@ -37,11 +30,11 @@ var nimbus = class extends ExtensionAPI {
         nimbus: {
           async enrollInExperiment(jsonData, forceEnroll) {
             try {
-              const slugExistsInStore = ExperimentManager.store
+              const slugExistsInStore = lazy.ExperimentManager.store
                 .getAll()
                 .some((experiment) => experiment.slug === jsonData.slug);
               const activeEnrollment =
-                ExperimentManager.store
+                lazy.ExperimentManager.store
                   .getAll()
                   .find(
                     (experiment) =>
@@ -63,7 +56,7 @@ var nimbus = class extends ExtensionAPI {
                 }
               }
 
-              const result = await ExperimentManager.enroll(
+              const result = await lazy.ExperimentManager.enroll(
                 jsonData,
                 "nimbus-devtools",
               );
@@ -111,11 +104,11 @@ var nimbus = class extends ExtensionAPI {
                 "userFacingDescription": "Testing the feature with feature ID: ${featureId}."
               }`);
 
-              const slugExistsInStore = ExperimentManager.store
+              const slugExistsInStore = lazy.ExperimentManager.store
                 .getAll()
                 .some((experiment) => experiment.slug === recipe.slug);
               const activeEnrollment =
-                ExperimentManager.store
+                lazy.ExperimentManager.store
                   .getAll()
                   .find(
                     (experiment) =>
@@ -138,7 +131,7 @@ var nimbus = class extends ExtensionAPI {
                   this.deleteInactiveEnrollment(slug);
                 }
               }
-              const result = await ExperimentManager.enroll(
+              const result = await lazy.ExperimentManager.enroll(
                 recipe,
                 "nimbus-devtools",
               );
@@ -151,8 +144,8 @@ var nimbus = class extends ExtensionAPI {
 
           async getFeatureConfigs() {
             try {
-              await ExperimentAPI.ready();
-              return Object.keys(NimbusFeatures).sort();
+              await lazy.ExperimentAPI.ready();
+              return Object.keys(lazy.NimbusFeatures).sort();
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -247,7 +240,7 @@ var nimbus = class extends ExtensionAPI {
               lazy.ASRouterTargeting.Environment,
             );
             const localContext = await resolve(
-              ExperimentManager.createTargetingContext(),
+              lazy.ExperimentManager.createTargetingContext(),
             );
 
             const targetingParameters = {
@@ -261,11 +254,11 @@ var nimbus = class extends ExtensionAPI {
                 lazy.ASRouterTargeting.Environment.localeLanguageCode,
               region: lazy.ASRouterTargeting.Environment.region,
               userId: lazy.ClientEnvironment.userId,
-              version: AppConstants.MOZ_APP_VERSION_DISPLAY,
+              version: lazy.AppConstants.MOZ_APP_VERSION_DISPLAY,
               channel:
                 lazy.TelemetryEnvironment.currentEnvironment.settings.update
                   .channel,
-              platform: AppConstants.platform,
+              platform: lazy.AppConstants.platform,
               os: lazy.ClientEnvironmentBase.os,
             };
 
@@ -274,9 +267,12 @@ var nimbus = class extends ExtensionAPI {
 
           async updateRecipes(forceSync) {
             try {
-              await RemoteSettingsExperimentLoader.updateRecipes("devtools", {
-                forceSync,
-              });
+              await lazy.RemoteSettingsExperimentLoader.updateRecipes(
+                "devtools",
+                {
+                  forceSync,
+                },
+              );
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -288,7 +284,7 @@ var nimbus = class extends ExtensionAPI {
               const branch = recipe?.branches?.find(
                 (br) => br.slug === branchSlug,
               );
-              const result = await ExperimentManager.forceEnroll(
+              const result = await lazy.ExperimentManager.forceEnroll(
                 recipe,
                 branch,
               );
@@ -301,7 +297,7 @@ var nimbus = class extends ExtensionAPI {
 
           async getExperimentStore() {
             try {
-              return await ExperimentManager.store.getAll();
+              return await lazy.ExperimentManager.store.getAll();
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -310,7 +306,10 @@ var nimbus = class extends ExtensionAPI {
 
           async unenroll(slug) {
             try {
-              return await ExperimentManager.unenroll(slug, "nimbus-devtools");
+              return await lazy.ExperimentManager.unenroll(
+                slug,
+                "nimbus-devtools",
+              );
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -319,7 +318,7 @@ var nimbus = class extends ExtensionAPI {
 
           async deleteInactiveEnrollment(slug) {
             try {
-              return await ExperimentManager.store._deleteForTests(slug);
+              return await lazy.ExperimentManager.store._deleteForTests(slug);
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -328,7 +327,8 @@ var nimbus = class extends ExtensionAPI {
 
           async generateTestIds(recipe, branchSlug) {
             try {
-              const result = await ExperimentManager.generateTestIds(recipe);
+              const result =
+                await lazy.ExperimentManager.generateTestIds(recipe);
               return result[branchSlug];
             } catch (error) {
               console.error(error);
