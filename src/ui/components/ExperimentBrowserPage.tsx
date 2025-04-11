@@ -15,7 +15,7 @@ import { AddToastParams, useToastsContext } from "../hooks/useToasts";
 const PROD_URL =
   "https://experimenter.services.mozilla.com/api/v6/experiments/";
 const STAGE_URL =
-  "https://stage.experimenter.nonprod.dataops.mozgcp.net/api/v6/experiments/";
+  "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v6/experiments/";
 
 type Status = "Live" | "Preview";
 
