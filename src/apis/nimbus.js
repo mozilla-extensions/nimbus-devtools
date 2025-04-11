@@ -12,14 +12,22 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
   ExperimentAPI: "resource://nimbus/ExperimentAPI.sys.mjs",
-  ExperimentManager: "resource://nimbus/lib/ExperimentManager.sys.mjs",
   FilterExpressions:
     "resource://gre/modules/components-utils/FilterExpressions.sys.mjs",
   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
-  RemoteSettingsExperimentLoader:
-    "resource://nimbus/lib/RemoteSettingsExperimentLoader.sys.mjs",
   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
 });
+
+ChromeUtils.defineLazyGetter(
+  lazy,
+  "ExperimentManager",
+  () => lazy.ExperimentAPI._manager,
+);
+ChromeUtils.defineLazyGetter(
+  lazy,
+  "RemoteSettingsExperimentLoader",
+  () => lazy.ExperimentAPI._rsLoader,
+);
 
 var nimbus = class extends ExtensionAPI {
   getAPI() {
