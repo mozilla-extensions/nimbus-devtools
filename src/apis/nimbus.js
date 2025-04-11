@@ -72,37 +72,41 @@ var nimbus = class extends ExtensionAPI {
             isRollout,
             forceEnroll,
           ) {
-            try {
-              const slug = `nimbus-devtools-${featureId}-${isRollout ? "rollout" : "experiment"}`;
-              const recipe = JSON.parse(`{
-                "bucketConfig": {
-                  "count": 1000,
-                  "namespace": "devtools-test",
-                  "randomizationUnit": "normandy_id",
-                  "start": 0,
-                  "total": 1000
-                },
-                "branches": [
-                  {
-                    "features": [
-                      {
-                        "featureId": "${featureId}",
-                        "value": ${JSON.stringify(featureValue)}
-                      }
-                    ],
-                    "ratio": 1,
-                    "slug": "control"
-                  }
-                ],
-                "isRollout": ${isRollout},
-                "featureIds": [
-                  "${featureId}"
-                ],
-                "slug": "${slug}",
-                "userFacingName": "Nimbus Devtools ${featureId} Enrollment",
-                "userFacingDescription": "Testing the feature with feature ID: ${featureId}."
-              }`);
+            let userFacingName = `Nimbus Devtools ${featureId} Enrollment`;
 
+            if (isRollout) {
+              userFacingName += " (rollout)";
+            }
+
+            const slug = `nimbus-devtools-${featureId}-${isRollout ? "rollout" : "experiment"}`;
+            const recipe = {
+              bucketConfig: {
+                namespace: "devtools-test",
+                randomizationUnit: "normandy_id",
+                start: 0,
+                total: 1000,
+                count: 1000,
+              },
+              branches: [
+                {
+                  features: [
+                    {
+                      featureId,
+                      value: featureValue,
+                    },
+                  ],
+                  ratio: 1,
+                  slug: "control",
+                },
+              ],
+              isRollout,
+              featureIds: [featureId],
+              slug,
+              userFacingName,
+              userFacingDescription: `Testing the feature with feature ID: ${featureId}.`,
+            };
+
+            try {
               const slugExistsInStore = lazy.ExperimentManager.store
                 .getAll()
                 .some((experiment) => experiment.slug === recipe.slug);
