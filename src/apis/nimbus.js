@@ -70,7 +70,7 @@ var nimbus = class extends ExtensionAPI {
               return { enrolled: result !== null, error: null };
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -145,7 +145,7 @@ var nimbus = class extends ExtensionAPI {
               return { enrolled: result !== null, error: null };
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -155,7 +155,7 @@ var nimbus = class extends ExtensionAPI {
               return Object.keys(NimbusFeatures).sort();
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -166,7 +166,7 @@ var nimbus = class extends ExtensionAPI {
               );
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -178,7 +178,7 @@ var nimbus = class extends ExtensionAPI {
               );
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -187,7 +187,7 @@ var nimbus = class extends ExtensionAPI {
               return await lazy.FilterExpressions.eval(expression, context);
             } catch (error) {
               console.error("Error evaluating expression:", error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -225,7 +225,7 @@ var nimbus = class extends ExtensionAPI {
                       return [key, resolvedValue];
                     } catch (error) {
                       console.warn(`Error resolving ${key}: `, error);
-                      throw error;
+                      throw new ExtensionError(String(error));
                     }
                   },
                 );
@@ -279,7 +279,7 @@ var nimbus = class extends ExtensionAPI {
               });
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -295,7 +295,7 @@ var nimbus = class extends ExtensionAPI {
               return result !== null;
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -304,7 +304,7 @@ var nimbus = class extends ExtensionAPI {
               return await ExperimentManager.store.getAll();
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -313,7 +313,7 @@ var nimbus = class extends ExtensionAPI {
               return await ExperimentManager.unenroll(slug, "nimbus-devtools");
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -322,7 +322,7 @@ var nimbus = class extends ExtensionAPI {
               return await ExperimentManager.store._deleteForTests(slug);
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
 
@@ -332,7 +332,7 @@ var nimbus = class extends ExtensionAPI {
               return result[branchSlug];
             } catch (error) {
               console.error(error);
-              throw error;
+              throw new ExtensionError(String(error));
             }
           },
         },

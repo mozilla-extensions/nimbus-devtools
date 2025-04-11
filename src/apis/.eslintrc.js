@@ -3,5 +3,6 @@ module.exports = {
   plugins: ["mozilla"],
   globals: {
     ExtensionAPI: true,
+    ExtensionError: true,
   },
 };
