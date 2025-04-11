@@ -23,6 +23,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
 
 var nimbus = class extends ExtensionAPI {
   getAPI() {
+    const { ExtensionError } = ExtensionUtils;
     return {
       experiments: {
         nimbus: {

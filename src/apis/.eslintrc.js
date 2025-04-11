@@ -3,7 +3,7 @@ module.exports = {
   plugins: ["mozilla"],
   globals: {
     ExtensionAPI: true,
-    ExtensionError: true,
+    ExtensionUtils: true,
   },
   rules: {
     "no-unused-vars": ["error", { varsIgnorePattern: "nimbus" }],
