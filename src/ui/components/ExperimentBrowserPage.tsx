@@ -69,9 +69,6 @@ const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
       </td>
       <td className="text-center align-middle px-2">{experiment.channel}</td>
       <td className="text-center align-middle px-2">
-        {experiment.schemaVersion}
-      </td>
-      <td className="text-center align-middle px-2">
         {experiment.isEnrollmentPaused ? "Enrolling" : "Enrollment Paused"}
       </td>
       <td className="text-end align-middle wide-column">
@@ -190,7 +187,6 @@ const ExperimentBrowserPage: FC = () => {
           <tr>
             <th className="text-center primary-fg light-bg">Experiment</th>
             <th className="text-center primary-fg light-bg">Channel</th>
-            <th className="text-center primary-fg light-bg">Version</th>
             <th className="text-center primary-fg light-bg">Status</th>
             <th className="text-center primary-fg light-bg">Actions</th>
           </tr>
