@@ -25,9 +25,12 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
     })();
   }, [addToast]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    onSelectFeatureConfigId(event.target.value);
-  }, []);
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      onSelectFeatureConfigId(event.target.value);
+    },
+    [onSelectFeatureConfigId],
+  );
 
   return (
     <Form.Group controlId="featureConfigSelect">

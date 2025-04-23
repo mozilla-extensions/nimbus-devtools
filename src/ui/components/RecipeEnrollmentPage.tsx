@@ -16,7 +16,7 @@ const RecipeEnrollmentPage: FC = () => {
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       setJsonInput(event.target.value);
     },
-    [setJsonInput],
+    [],
   );
 
   const handleEnrollClick = useCallback(
@@ -63,17 +63,17 @@ const RecipeEnrollmentPage: FC = () => {
         });
       }
     },
-    [jsonInput, setJsonInput, addToast, setEnrollError],
+    [jsonInput, addToast],
   );
 
   const handleModalConfirm = useCallback(async () => {
     setEnrollError(null);
     await handleEnrollClick(undefined, true);
-  }, [handleEnrollClick, setEnrollError]);
+  }, [handleEnrollClick]);
 
   const handleModalClose = useCallback(() => {
     setEnrollError(null);
-  }, [setEnrollError]);
+  }, []);
 
   return (
     <Container className="main-content m-0 p-2">

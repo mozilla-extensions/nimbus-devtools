@@ -8,6 +8,7 @@ module.exports = {
     "plugin:import/typescript",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
+    "plugin:react-hooks/recommended-legacy",
   ],
   env: {
     es2023: true,
@@ -40,5 +41,6 @@ module.exports = {
         ignoreRestArgs: true,
       },
     ],
+    "react-hooks/exhaustive-deps": "error",
   },
 };

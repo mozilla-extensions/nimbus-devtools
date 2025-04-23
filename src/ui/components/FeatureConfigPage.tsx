@@ -80,11 +80,11 @@ const FeatureConfigPage: FC = () => {
   const handleModalConfirm = useCallback(async () => {
     setEnrollError(null);
     await handleEnrollClick(null, true);
-  }, [handleEnrollClick, setEnrollError]);
+  }, [handleEnrollClick]);
 
   const handleModalClose = useCallback(() => {
     setEnrollError(null);
-  }, [setEnrollError]);
+  }, []);
 
   return (
     <Container className="main-content p-2 overflow-hidden">

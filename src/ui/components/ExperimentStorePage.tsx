@@ -27,7 +27,7 @@ const ExperimentStorePage: FC = () => {
         variant: "danger",
       });
     }
-  }, [experiments, addToast]);
+  }, [addToast]);
 
   useEffect(() => {
     void fetchExperiments();

@@ -178,7 +178,7 @@ const JEXLDebuggerPage: FC = () => {
 
   useEffect(() => {
     void fetchClientContext();
-  }, []);
+  }, [fetchClientContext]);
 
   const handleExpressionChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -237,7 +237,7 @@ const JEXLDebuggerPage: FC = () => {
         }
       }
     }, 1000);
-  }, [addToast, setModifiedContext]);
+  }, [addToast]);
 
   const handleContextChange = useCallback<OnChangeFn>(
     (key: string, value: FormDataValue, fieldType: FieldType) => {
@@ -276,7 +276,7 @@ const JEXLDebuggerPage: FC = () => {
         [key]: value,
       }));
     },
-    [setModifiedContext, setFormData, parseAndSetContext],
+    [parseAndSetContext],
   );
 
   return (

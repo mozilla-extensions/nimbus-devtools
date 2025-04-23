@@ -48,7 +48,7 @@ const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedBranch(e.target.value);
     },
-    [setSelectedBranch],
+    [],
   );
 
   const handleGenerateTestIds = useCallback(async () => {

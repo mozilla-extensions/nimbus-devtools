@@ -58,7 +58,7 @@ const SettingsPage: FC = () => {
         }
       }
     },
-    [customCollection, collectionId, setCollectionId, addToast],
+    [customCollection, addToast],
   );
 
   const handleCustomChange = useCallback(
@@ -76,7 +76,7 @@ const SettingsPage: FC = () => {
         }
       }
     },
-    [collectionId, customCollection, setCustomCollection, addToast],
+    [collectionId, addToast],
   );
 
   const handleForceSyncChange = useCallback(
@@ -96,7 +96,7 @@ const SettingsPage: FC = () => {
         variant: "danger",
       });
     }
-  }, [forceSync, setForceSync, addToast]);
+  }, [forceSync, addToast]);
 
   return (
     <Container fluid className="main-content py-4 p-2 overflow-hidden">
