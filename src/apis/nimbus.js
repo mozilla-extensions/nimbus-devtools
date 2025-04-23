@@ -37,15 +37,19 @@ var nimbus = class extends ExtensionAPI {
         nimbus: {
           async enrollInExperiment(jsonData, forceEnroll) {
             try {
+              const { slug, isRollout = false } = jsonData;
+
               const slugExistsInStore = lazy.ExperimentManager.store
                 .getAll()
-                .some((experiment) => experiment.slug === jsonData.slug);
+                .some((experiment) => experiment.slug === slug);
               const activeEnrollment =
                 lazy.ExperimentManager.store
                   .getAll()
                   .find(
                     (experiment) =>
-                      experiment.slug === jsonData.slug && experiment.active,
+                      experiment.slug === slug &&
+                      experiment.isRollout === isRollout &&
+                      experiment.active,
                   )?.slug ?? null;
               if (slugExistsInStore || activeEnrollment) {
                 if (!forceEnroll) {
@@ -124,6 +128,7 @@ var nimbus = class extends ExtensionAPI {
                   .find(
                     (experiment) =>
                       experiment.featureIds.includes(featureId) &&
+                      experiment.isRollout === isRollout &&
                       experiment.active,
                   )?.slug ?? null;
 
