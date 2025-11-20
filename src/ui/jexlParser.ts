@@ -96,11 +96,7 @@ async function evaluateExpression(
   context: object,
 ): Promise<object | boolean> {
   try {
-    const result = await browser.experiments.nimbus.evaluateJEXL(
-      expression,
-      context,
-    );
-    return result === null ? true : result;
+    return await browser.experiments.nimbus.evaluateJEXL(expression, context);
   } catch (error) {
     console.error(`Error evaluating part "${expression}":`, error);
     throw error;
