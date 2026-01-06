@@ -56,192 +56,200 @@ tasks:
                       baseRepoUrl: '${repository.url}'
                       repoUrl: '${repository.url}'
           in:
-              $if: 'tasks_for in ["github-pull-request", "github-push", "action", "cron"]'
-              then:
-                  $let:
-                      level: 1
-                  in:
-                      taskId:
-                          $if: 'tasks_for != "action"'
-                          then: '${ownTaskId}'
-                      taskGroupId:
-                          $if: 'tasks_for == "action"'
-                          then:
-                              '${action.taskGroupId}'
-                          else:
-                              '${ownTaskId}'  # same as taskId; this is how automation identifies a decision task
-                      schedulerId: '${trustDomain}-level-${level}'
-                      created: {$fromNow: ''}
-                      deadline: {$fromNow: '1 day'}
-                      expires: {$fromNow: '1 year 1 second'}  # 1 second so artifacts expire first, despite rounding errors
-                      metadata:
-                          $merge:
-                              - owner: "${ownerEmail}"
-                              - $if: '!privateRepo'  # public repo
-                                then:
-                                    source: '${repoUrl}/raw/${head_sha}/.taskcluster.yml'
-                                else:
-                                    source: 'ssh://github.com/${repoUrl[15:-4]}/raw/${head_sha}/.taskcluster.yml'
-                              - $if: 'tasks_for in ["github-push", "github-pull-request"]'
-                                then:
-                                    name: "Decision Task"
-                                    description: 'The task that creates all of the other tasks in the task graph'
-                                else:
-                                    $if: 'tasks_for == "action"'
-                                    then:
-                                        name: "Action: ${action.title}"
-                                        description: '${action.description}'
-                                    else:
-                                        name: "Decision Task for cron job ${cron.job_name}"
-                                        description: 'Created by a [cron task](https://tools.taskcluster.net/tasks/${cron.task_id})'
-                      provisionerId: "xpi-${level}"
-                      workerType: "decision"
-                      tags:
-                          $if: 'tasks_for in ["github-push", "github-pull-request"]'
-                          then:
-                              kind: decision-task
-                          else:
+              $let:
+                  branch:
+                      $if: 'head_branch[:11] == "refs/heads/"'
+                      then: {$eval: 'head_branch[11:]'}
+                      else: ${head_branch}
+              in:
+                  $if: >
+                      tasks_for == "github-push" && branch == "main"   
+                      || tasks_for in ["github-pull-request", "action", "cron"]
+                  then:
+                      $let:
+                          level: 1
+                      in:
+                          taskId:
+                              $if: 'tasks_for != "action"'
+                              then: '${ownTaskId}'
+                          taskGroupId:
                               $if: 'tasks_for == "action"'
                               then:
-                                  kind: 'action-callback'
+                                  '${action.taskGroupId}'
                               else:
-                                  $if: 'tasks_for == "cron"'
-                                  then:
-                                      kind: cron-task
-                      routes:
-                          $flatten:
-                              - checks
-                              - $if: 'tasks_for == "github-push"'
-                                then:
-                                    - "index.${trustDomain}.v2.${project}.revision.${head_sha}.taskgraph.decision"
-                                else: []
-                      scopes:
-                          $if: 'tasks_for == "github-push"'
-                          then:
-                              $let:
-                                  short_head_branch:
-                                      $if: 'head_branch[:10] == "refs/tags/"'
-                                      then: {$eval: 'head_branch[10:]'}
-                                      else:
-                                          $if: 'head_branch[:11] == "refs/heads/"'
-                                          then: {$eval: 'head_branch[11:]'}
-                                          else: ${head_branch}
-                              in:
-                                  - 'assume:repo:github.com/${repoFullName}:branch:${short_head_branch}'
-
-
-                          else:
-                              $if: 'tasks_for == "github-pull-request"'
+                                  '${ownTaskId}'  # same as taskId; this is how automation identifies a decision task
+                          schedulerId: '${trustDomain}-level-${level}'
+                          created: {$fromNow: ''}
+                          deadline: {$fromNow: '1 day'}
+                          expires: {$fromNow: '1 year 1 second'}  # 1 second so artifacts expire first, despite rounding errors
+                          metadata:
+                              $merge:
+                                  - owner: "${ownerEmail}"
+                                  - $if: '!privateRepo'  # public repo
+                                    then:
+                                        source: '${repoUrl}/raw/${head_sha}/.taskcluster.yml'
+                                    else:
+                                        source: 'ssh://github.com/${repoUrl[15:-4]}/raw/${head_sha}/.taskcluster.yml'
+                                  - $if: 'tasks_for in ["github-push", "github-pull-request"]'
+                                    then:
+                                        name: "Decision Task"
+                                        description: 'The task that creates all of the other tasks in the task graph'
+                                    else:
+                                        $if: 'tasks_for == "action"'
+                                        then:
+                                            name: "Action: ${action.title}"
+                                            description: '${action.description}'
+                                        else:
+                                            name: "Decision Task for cron job ${cron.job_name}"
+                                            description: 'Created by a [cron task](https://tools.taskcluster.net/tasks/${cron.task_id})'
+                          provisionerId: "xpi-${level}"
+                          workerType: "decision"
+                          tags:
+                              $if: 'tasks_for in ["github-push", "github-pull-request"]'
                               then:
-                                  - 'assume:repo:github.com/${repoFullName}:pull-request'
-
+                                  kind: decision-task
                               else:
                                   $if: 'tasks_for == "action"'
                                   then:
-                                      # when all actions are hooks, we can calculate this directly rather than using a variable
-                                      - '${action.repo_scope}'
+                                      kind: 'action-callback'
                                   else:
-                                      - 'assume:repo:github.com/${repoFullName}:cron:${cron.job_name}'
+                                      $if: 'tasks_for == "cron"'
+                                      then:
+                                          kind: cron-task
+                          routes:
+                              $flatten:
+                                  - checks
+                                  - $if: 'tasks_for == "github-push"'
+                                    then:
+                                        - "index.${trustDomain}.v2.${project}.revision.${head_sha}.taskgraph.decision"
+                                    else: []
+                          scopes:
+                              $if: 'tasks_for == "github-push"'
+                              then:
+                                  $let:
+                                      short_head_branch:
+                                          $if: 'head_branch[:10] == "refs/tags/"'
+                                          then: {$eval: 'head_branch[10:]'}
+                                          else:
+                                              $if: 'head_branch[:11] == "refs/heads/"'
+                                              then: {$eval: 'head_branch[11:]'}
+                                              else: ${head_branch}
+                                  in:
+                                      - 'assume:repo:github.com/${repoFullName}:branch:${short_head_branch}'
 
 
-                      requires: all-completed
-                      priority: lowest
-                      retries: 5
+                              else:
+                                  $if: 'tasks_for == "github-pull-request"'
+                                  then:
+                                      - 'assume:repo:github.com/${repoFullName}:pull-request'
 
-                      payload:
-                          env:
-                              # run-task uses these to check out the source; the inputs
-                              # to `mach taskgraph decision` are all on the command line.
+                                  else:
+                                      $if: 'tasks_for == "action"'
+                                      then:
+                                          # when all actions are hooks, we can calculate this directly rather than using a variable
+                                          - '${action.repo_scope}'
+                                      else:
+                                          - 'assume:repo:github.com/${repoFullName}:cron:${cron.job_name}'
+
+
+                          requires: all-completed
+                          priority: lowest
+                          retries: 5
+
+                          payload:
+                              env:
+                                  # run-task uses these to check out the source; the inputs
+                                  # to `mach taskgraph decision` are all on the command line.
+                                  $merge:
+                                      - XPI_BASE_REPOSITORY: '${baseRepoUrl}'
+                                        XPI_HEAD_REPOSITORY: '${repoUrl}'
+                                        XPI_HEAD_REF: '${head_branch}'
+                                        XPI_HEAD_REV: '${head_sha}'
+                                        XPI_REPOSITORY_TYPE: git
+                                        XPI_SIGNING_TYPE: '${xpiSigningType}'
+                                        TEMPLATE_BASE_REPOSITORY: '${template.repo}'
+                                        TEMPLATE_HEAD_REPOSITORY: '${template.repo}'
+                                        TEMPLATE_HEAD_REV: '${template.branch}'
+                                        TEMPLATE_HEAD_REF: '${template.branch}'
+                                        TEMPLATE_PIP_REQUIREMENTS: taskcluster/requirements.txt
+                                        TEMPLATE_REPOSITORY_TYPE: git
+                                        REPOSITORIES: {$json: {xpi: "XPI Manifest", template: "XPI Template"}}
+                                      - $if: 'privateRepo'
+                                        then:
+                                            XPI_SSH_SECRET_NAME: project/xpi/xpi-github-clone-ssh
+                                      - $if: 'tasks_for in ["github-pull-request"]'
+                                        then:
+                                            XPI_PULL_REQUEST_NUMBER: '${event.pull_request.number}'
+                                      - $if: 'tasks_for == "action"'
+                                        then:
+                                            ACTION_TASK_GROUP_ID: '${action.taskGroupId}'  # taskGroupId of the target task
+                                            ACTION_TASK_ID: {$json: {$eval: 'taskId'}}  # taskId of the target task (JSON-encoded)
+                                            ACTION_INPUT: {$json: {$eval: 'input'}}
+                                            ACTION_CALLBACK: '${action.cb_name}'
+                              features:
+                                  taskclusterProxy: true
+                                  chainOfTrust: true
+                              # Note: This task is built server side without the context or tooling that
+                              # exist in tree so we must hard code the hash
+                              image: mozillareleases/taskgraph:decision-f19bfa3ae9dbc19190149445bfc38ad966b713336e44342c7643b3f7f1e0b023@sha256:ddcc7348db272885e8ea32825f698bfafa4727401099531cd8239d3d458b39aa
+
+                              maxRunTime: 1800
+
+                              command:
+                                  - /usr/local/bin/run-task
+                                  - '--xpi-checkout=/builds/worker/checkouts/src'
+                                  - '--template-checkout=/builds/worker/checkouts/template'
+                                  - '--task-cwd=/builds/worker/checkouts/src'
+                                  - '--'
+                                  - bash
+                                  - -cx
+                                  - $let:
+                                        extraArgs: {$if: 'tasks_for == "cron"', then: '${cron.quoted_args}', else: ''}
+                                    in:
+                                        $if: 'tasks_for == "action"'
+                                        then: >
+                                            cd /builds/worker/checkouts/src &&
+                                            rm -rf taskcluster &&
+                                            ln -s /builds/worker/checkouts/template/taskcluster taskcluster &&
+                                            ln -s /builds/worker/artifacts artifacts &&
+                                            ~/.local/bin/taskgraph action-callback
+                                        else: >
+                                            rm -rf taskcluster &&
+                                            ln -s /builds/worker/checkouts/template/taskcluster taskcluster &&
+                                            ln -s /builds/worker/artifacts artifacts &&
+                                            ~/.local/bin/taskgraph decision
+                                            --pushlog-id='0'
+                                            --pushdate='0'
+                                            --project='${project}'
+                                            --message=""
+                                            --owner='${ownerEmail}'
+                                            --level='${level}'
+                                            --base-repository="$XPI_BASE_REPOSITORY"
+                                            --head-repository="$XPI_HEAD_REPOSITORY"
+                                            --head-ref="$XPI_HEAD_REF"
+                                            --head-rev="$XPI_HEAD_REV"
+                                            --repository-type="$XPI_REPOSITORY_TYPE"
+                                            --tasks-for='${tasks_for}'
+                                            ${extraArgs}
+
+                              artifacts:
+                                  'public':
+                                      type: 'directory'
+                                      path: '/builds/worker/artifacts'
+                                      expires: {$fromNow: '1 year'}
+
+                          extra:
                               $merge:
-                                  - XPI_BASE_REPOSITORY: '${baseRepoUrl}'
-                                    XPI_HEAD_REPOSITORY: '${repoUrl}'
-                                    XPI_HEAD_REF: '${head_branch}'
-                                    XPI_HEAD_REV: '${head_sha}'
-                                    XPI_REPOSITORY_TYPE: git
-                                    XPI_SIGNING_TYPE: '${xpiSigningType}'
-                                    TEMPLATE_BASE_REPOSITORY: '${template.repo}'
-                                    TEMPLATE_HEAD_REPOSITORY: '${template.repo}'
-                                    TEMPLATE_HEAD_REV: '${template.branch}'
-                                    TEMPLATE_HEAD_REF: '${template.branch}'
-                                    TEMPLATE_PIP_REQUIREMENTS: taskcluster/requirements.txt
-                                    TEMPLATE_REPOSITORY_TYPE: git
-                                    REPOSITORIES: {$json: {xpi: "XPI Manifest", template: "XPI Template"}}
-                                  - $if: 'privateRepo'
-                                    then:
-                                        XPI_SSH_SECRET_NAME: project/xpi/xpi-github-clone-ssh
-                                  - $if: 'tasks_for in ["github-pull-request"]'
-                                    then:
-                                        XPI_PULL_REQUEST_NUMBER: '${event.pull_request.number}'
                                   - $if: 'tasks_for == "action"'
                                     then:
-                                        ACTION_TASK_GROUP_ID: '${action.taskGroupId}'  # taskGroupId of the target task
-                                        ACTION_TASK_ID: {$json: {$eval: 'taskId'}}  # taskId of the target task (JSON-encoded)
-                                        ACTION_INPUT: {$json: {$eval: 'input'}}
-                                        ACTION_CALLBACK: '${action.cb_name}'
-                          features:
-                              taskclusterProxy: true
-                              chainOfTrust: true
-                          # Note: This task is built server side without the context or tooling that
-                          # exist in tree so we must hard code the hash
-                          image: mozillareleases/taskgraph:decision-f19bfa3ae9dbc19190149445bfc38ad966b713336e44342c7643b3f7f1e0b023@sha256:ddcc7348db272885e8ea32825f698bfafa4727401099531cd8239d3d458b39aa
-
-                          maxRunTime: 1800
-
-                          command:
-                              - /usr/local/bin/run-task
-                              - '--xpi-checkout=/builds/worker/checkouts/src'
-                              - '--template-checkout=/builds/worker/checkouts/template'
-                              - '--task-cwd=/builds/worker/checkouts/src'
-                              - '--'
-                              - bash
-                              - -cx
-                              - $let:
-                                    extraArgs: {$if: 'tasks_for == "cron"', then: '${cron.quoted_args}', else: ''}
-                                in:
-                                    $if: 'tasks_for == "action"'
-                                    then: >
-                                        cd /builds/worker/checkouts/src &&
-                                        rm -rf taskcluster &&
-                                        ln -s /builds/worker/checkouts/template/taskcluster taskcluster &&
-                                        ln -s /builds/worker/artifacts artifacts &&
-                                        ~/.local/bin/taskgraph action-callback
-                                    else: >
-                                        rm -rf taskcluster &&
-                                        ln -s /builds/worker/checkouts/template/taskcluster taskcluster &&
-                                        ln -s /builds/worker/artifacts artifacts &&
-                                        ~/.local/bin/taskgraph decision
-                                        --pushlog-id='0'
-                                        --pushdate='0'
-                                        --project='${project}'
-                                        --message=""
-                                        --owner='${ownerEmail}'
-                                        --level='${level}'
-                                        --base-repository="$XPI_BASE_REPOSITORY"
-                                        --head-repository="$XPI_HEAD_REPOSITORY"
-                                        --head-ref="$XPI_HEAD_REF"
-                                        --head-rev="$XPI_HEAD_REV"
-                                        --repository-type="$XPI_REPOSITORY_TYPE"
-                                        --tasks-for='${tasks_for}'
-                                        ${extraArgs}
-
-                          artifacts:
-                              'public':
-                                  type: 'directory'
-                                  path: '/builds/worker/artifacts'
-                                  expires: {$fromNow: '1 year'}
-
-                      extra:
-                          $merge:
-                              - $if: 'tasks_for == "action"'
-                                then:
-                                    parent: '${action.taskGroupId}'
-                                    action:
-                                        name: '${action.name}'
-                                        context:
-                                            taskGroupId: '${action.taskGroupId}'
-                                            taskId: {$eval: 'taskId'}
-                                            input: {$eval: 'input'}
-                              - $if: 'tasks_for == "cron"'
-                                then:
-                                    cron: {$json: {$eval: 'cron'}}
-                              - tasks_for: '${tasks_for}'
+                                        parent: '${action.taskGroupId}'
+                                        action:
+                                            name: '${action.name}'
+                                            context:
+                                                taskGroupId: '${action.taskGroupId}'
+                                                taskId: {$eval: 'taskId'}
+                                                input: {$eval: 'input'}
+                                  - $if: 'tasks_for == "cron"'
+                                    then:
+                                        cron: {$json: {$eval: 'cron'}}
+                                  - tasks_for: '${tasks_for}'
