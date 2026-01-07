@@ -3,11 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+const { AppConstants } = ChromeUtils.importESModule("resource://gre/modules/AppConstants.sys.mjs");
+
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
   ASRouterTargeting: "resource:///modules/asrouter/ASRouterTargeting.sys.mjs",
-  AppConstants: "resource://gre/modules/AppConstants.sys.mjs",
   ClientEnvironment: "resource://normandy/lib/ClientEnvironment.sys.mjs",
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
@@ -209,7 +210,7 @@ var nimbus = class extends ExtensionAPI {
               try {
                 Date.prototype.getDate.call(object);
                 return true;
-              } catch (error) {
+              } catch {
                 return false;
               }
             }
@@ -270,11 +271,11 @@ var nimbus = class extends ExtensionAPI {
                 lazy.ASRouterTargeting.Environment.localeLanguageCode,
               region: lazy.ASRouterTargeting.Environment.region,
               userId: lazy.ClientEnvironment.userId,
-              version: lazy.AppConstants.MOZ_APP_VERSION_DISPLAY,
+              version: AppConstants.MOZ_APP_VERSION_DISPLAY,
               channel:
                 lazy.TelemetryEnvironment.currentEnvironment.settings.update
                   .channel,
-              platform: lazy.AppConstants.platform,
+              platform: AppConstants.platform,
               os: lazy.ClientEnvironmentBase.os,
             };
 

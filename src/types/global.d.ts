@@ -3,8 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 declare module "*.png" {
   const value: string;
   export default value;
