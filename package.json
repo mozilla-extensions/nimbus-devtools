@@ -34,7 +34,6 @@
     "web-ext": "web-ext"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
