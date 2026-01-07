@@ -12,7 +12,10 @@
       "source": "./src/ui/index.html"
     }
   },
-  "browserslist": "firefox 113",
+  "browserslist": [
+    "firefox > 137",
+    "unreleased firefox versions"
+  ],
   "scripts": {
     "build": "npm-run-all clean build:manifest build:ui build:package",
     "build:ui": "parcel build --target ui",
