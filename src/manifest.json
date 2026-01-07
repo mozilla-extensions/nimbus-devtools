@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "nimbus-devtools",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "browser_specific_settings": {
     "gecko": {
       "id": "nimbus-devtools@mozilla.com",
