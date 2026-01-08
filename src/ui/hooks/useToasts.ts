@@ -1,17 +1,17 @@
 import { createContext, useCallback, useContext, useState } from "react";
 
-export interface Toast {
+export type Toast = {
   id: string;
   message: string;
   variant: "success" | "danger";
   autohide?: boolean;
-}
+};
 
-export interface UseToasts {
+export type UseToasts = {
   toasts: Toast[];
   addToast: (params: AddToastParams) => void;
   removeToast: (id: string) => void;
-}
+};
 
 export type AddToastParams = {
   message: string;

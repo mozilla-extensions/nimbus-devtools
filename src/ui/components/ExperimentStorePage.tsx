@@ -3,14 +3,14 @@ import { Table, Button, Container } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
 
-interface NimbusEnrollment {
+type NimbusEnrollment = {
   slug: string;
   userFacingName: string;
   userFacingDescription: string;
   isRollout: boolean;
   featureIds: string[];
   active: boolean;
-}
+};
 
 const ExperimentStorePage: FC = () => {
   const [experiments, setExperiments] = useState<NimbusEnrollment[]>([]);

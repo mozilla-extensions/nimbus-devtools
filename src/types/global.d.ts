@@ -9,27 +9,27 @@ declare module "*.png" {
 }
 
 declare module "mozjexl/lib/grammar" {
-  export interface GrammarItem {
+  export type GrammarItem = {
     type: string;
     precedence?: number;
     eval?: (
       left: boolean | number | string,
       right?: boolean | number | string,
     ) => boolean | number | string;
-  }
+  };
 
-  export interface Grammar {
+  export type Grammar = {
     elements: {
       [key: string]: GrammarItem;
     };
-  }
+  };
 
-  export interface Token {
+  export type Token = {
     type: string;
     name?: string;
     value: boolean | number | string;
     raw: string;
-  }
+  };
 
   export const elements: Grammar;
 }

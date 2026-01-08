@@ -139,6 +139,7 @@ export default defineConfig([
           ignoreRestArgs: true,
         },
       ],
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "react-hooks/exhaustive-deps": "error",
     },
   },
