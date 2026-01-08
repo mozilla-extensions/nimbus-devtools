@@ -9,7 +9,13 @@
     "ui": {
       "distDir": "./dist/ui",
       "publicUrl": "./",
-      "source": "./src/ui/index.html"
+      "source": "./src/ui/index.html",
+      "engines": {
+        "browsers": [
+          "firefox > 137",
+          "unreleased firefox versions"
+        ]
+      }
     }
   },
   "browserslist": [
