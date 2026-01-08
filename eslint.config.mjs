@@ -98,7 +98,7 @@ export default defineConfig([
   },
   {
     name: "nimbus-devtools/webext/ui",
-    files: ["./src/types/**/*.d.ts", "./src/ui/**.*.{ts,tsx}"],
+    files: ["./src/types/**/*.d.ts", "./src/ui/**/*.{ts,tsx}"],
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
