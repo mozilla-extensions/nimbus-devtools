@@ -9,11 +9,7 @@ import globals from "globals";
 import ts from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores([
-    "dist/**/*",
-    "eslint.config.mjs",
-    "**/.eslintrc.js",
-  ]),
+  globalIgnores(["dist/**/*", "**/eslint.config.mjs"]),
   js.configs.recommended,
   importPlugin.flatConfigs.recommended,
   {
@@ -42,13 +38,20 @@ export default defineConfig([
     },
   },
   {
-    name: "nimbus-devtools/bin",
+    name: "nimbus-devtools/node",
     files: ["./bin/**.mjs"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "module",
       globals: {
         ...globals.node,
+      },
+    },
+    settings: {
+      "import/resolver": {
+        node: {
+          extensions: [".js", ".cjs", ".mjs"],
+        },
       },
     },
   },
@@ -95,10 +98,7 @@ export default defineConfig([
   },
   {
     name: "nimbus-devtools/webext/ui",
-    files: [
-      "./src/types/**/*.d.ts",
-      "./src/ui/**.*.{ts,tsx}",
-    ],
+    files: ["./src/types/**/*.d.ts", "./src/ui/**.*.{ts,tsx}"],
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
@@ -131,7 +131,7 @@ export default defineConfig([
         "error",
         {
           checksVoidReturn: false,
-        }
+        },
       ],
       "@typescript-eslint/no-explicit-any": [
         "error",
