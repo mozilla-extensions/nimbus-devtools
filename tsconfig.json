@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "jexlParser": ["./src/ui/jexlParser"]
-    },
     "isolatedModules": true, // For Parcel
     "moduleResolution": "node",
     "target": "ES2022",

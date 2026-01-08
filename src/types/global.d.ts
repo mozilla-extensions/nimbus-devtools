@@ -46,7 +46,62 @@ declare module "mozjexl/lib/Lexer" {
 declare module "mozjexl/lib/parser/Parser" {
   import { Grammar, Token } from "mozjexl/lib/grammar";
 
-  import { ASTNode } from "jexlParser";
+  type BinaryExpression = {
+    type: "BinaryExpression" | "LogicalExpression";
+    left: ASTNode;
+    right: ASTNode;
+    operator: string;
+  };
+
+  type UnaryExpression = {
+    type: "UnaryExpression";
+    operator: string;
+    right: ASTNode;
+  };
+
+  type Transform = {
+    type: "Transform";
+    name: string;
+    subject: ASTNode;
+    args: ASTNode[];
+  };
+
+  type FilterExpression = {
+    type: "FilterExpression";
+    subject: ASTNode;
+    expr: ASTNode;
+  };
+
+  type Literal = {
+    type: "Literal";
+    value: string | number | boolean | null;
+  };
+
+  type Identifier = {
+    type: "Identifier";
+    value: string;
+    from?: Identifier;
+  };
+
+  type ArrayLiteral = {
+    type: "ArrayLiteral";
+    value: ASTNode[];
+  };
+
+  type ObjectLiteral = {
+    type: "ObjectLiteral";
+    value: { [key: string]: ASTNode };
+  };
+
+  export type ASTNode =
+    | BinaryExpression
+    | UnaryExpression
+    | Transform
+    | FilterExpression
+    | Literal
+    | Identifier
+    | ArrayLiteral
+    | ObjectLiteral;
 
   export default class Parser {
     constructor(grammar: Grammar);
