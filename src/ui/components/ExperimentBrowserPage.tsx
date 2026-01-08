@@ -132,6 +132,10 @@ const ExperimentBrowserPage: FC = () => {
   );
 
   useEffect(() => {
+    // This will raise a false positive about calling setState in effect, even
+    // though the setState happens *after* an await statement.
+    // See-also: https://github.com/facebook/react/issues/34905
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchExperiments();
   }, [fetchExperiments]);
 
