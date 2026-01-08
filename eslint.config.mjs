@@ -123,7 +123,7 @@ export default defineConfig([
         typescript: true,
       },
       react: {
-        version: "18.3.3",
+        version: "18.3.27",
       },
     },
     rules: {
