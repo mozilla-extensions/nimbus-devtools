@@ -41,6 +41,8 @@ function parseManifest({ absolute = false } = {}) {
     }
   }
 
+  files.push(...Object.values(manifest.icons ?? {}));
+
   if (absolute) {
     return files.map((f) => path.join(SRC_DIR, f));
   }
@@ -85,6 +87,5 @@ function watch() {
 if (process.argv.length === 3 && process.argv[2] == "--watch") {
   watch();
 } else {
-  const files = parseManifest();
-  copyFiles(files);
+  copyFiles(parseManifest());
 }
