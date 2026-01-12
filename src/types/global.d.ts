@@ -3,11 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-declare module "*.png" {
-  const value: string;
-  export default value;
-}
-
 declare module "mozjexl/lib/grammar" {
   export type GrammarItem = {
     type: string;
