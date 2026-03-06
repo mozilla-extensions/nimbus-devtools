@@ -19,8 +19,8 @@ const MANIFEST_PATH = path.join(SRC_DIR, MANIFEST);
 /**
  * Parse manifest.json and return the list of files required by the extension.
  */
-function parseManifest({ absolute = false } = {}) {
-  const files = [MANIFEST];
+function parseManifest({ absolute = false, dev = false } = {}) {
+  let files = [];
 
   const contents = fs.readFileSync(MANIFEST_PATH, {
     encoding: "utf-8",
@@ -28,6 +28,9 @@ function parseManifest({ absolute = false } = {}) {
   const manifest = JSON.parse(contents);
 
   files.push(...(manifest.background?.scripts ?? []));
+  files.push(
+    ...(manifest.content_scripts?.flatMap((script) => script.js) ?? []),
+  );
 
   for (const api of Object.values(manifest.experiment_apis ?? {})) {
     files.push(api.schema);
@@ -37,17 +40,23 @@ function parseManifest({ absolute = false } = {}) {
     }
 
     if (api.child) {
-      files.push(api.parent.child);
+      files.push(api.child.script);
     }
   }
 
   files.push(...Object.values(manifest.icons ?? {}));
 
   if (absolute) {
-    return files.map((f) => path.join(SRC_DIR, f));
+    files = files.map((f) => path.join(SRC_DIR, f));
   }
 
-  return files;
+  if (dev) {
+    for (const contentScript of manifest.content_scripts) {
+      contentScript.matches.push("http://localhost/*");
+    }
+  }
+
+  return { manifest, files };
 }
 
 function copyFiles(files) {
@@ -68,7 +77,7 @@ function watch() {
   let watcher;
 
   function makeWatcher() {
-    const files = parseManifest({ absolute: true });
+    let { manifest, files } = parseManifest({ absolute: true, dev: true });
 
     watcher = new Watcher(files);
     watcher.on("all", (event, targetPath) => {
@@ -77,7 +86,13 @@ function watch() {
         makeWatcher();
       }
 
-      copyFiles(parseManifest());
+      ({ manifest, files } = parseManifest({ dev: true }));
+
+      fs.writeFileSync(
+        path.join(DIST_DIR, MANIFEST),
+        JSON.stringify(manifest, null, 2),
+        { encoding: "utf-8" },
+      );
     });
   }
 
@@ -87,5 +102,12 @@ function watch() {
 if (process.argv.length === 3 && process.argv[2] == "--watch") {
   watch();
 } else {
-  copyFiles(parseManifest());
+  const { manifest, files } = parseManifest();
+
+  copyFiles(files);
+  fs.writeFileSync(
+    path.join(DIST_DIR, MANIFEST),
+    JSON.stringify(manifest, null, 2),
+    { encoding: "utf-8" },
+  );
 }

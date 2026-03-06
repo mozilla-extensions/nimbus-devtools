@@ -19,7 +19,24 @@
   "background": {
     "scripts": ["background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://experimenter.services.mozilla.com/*",
+        "https://stage.experimenter.nonprod.webservices.mozgcp.net/*"
+      ],
+      "js": ["experimenter.js"]
+    }
+  ],
   "experiment_apis": {
+    "messagingSystem": {
+      "schema": "apis/messagingSystem.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "apis/messagingSystem.js",
+        "paths": [["experiments", "messagingSystem"]]
+      }
+    },
     "nimbus": {
       "schema": "apis/nimbus.json",
       "parent": {

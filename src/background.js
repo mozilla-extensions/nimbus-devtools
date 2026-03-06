@@ -8,3 +8,39 @@ browser.browserAction.onClicked.addListener(() =>
     url: "./ui/index.html",
   }),
 );
+
+browser.runtime.onMessage.addListener(
+  function (message, _sender, sendResponse) {
+    console.log(message);
+    if (
+      typeof message !== "object" ||
+      message === null ||
+      typeof message.kind !== "string"
+    ) {
+      console.error("nimbus-devtools: unexpected message", message);
+      return;
+    }
+
+    switch (message.kind) {
+      case "nimbus-devtools:getMessagingFeaturesAndTemplates":
+        browser.experiments.messagingSystem
+          .getMessagingFeaturesAndTemplates()
+          .then((v) => {
+            console.log("rv", v);
+            sendResponse(v);
+          });
+
+        return true;
+
+      case "nimbus-devtools:previewMessage":
+        browser.experiments.messagingSystem.previewMessage(message.message);
+        break;
+
+      default:
+        console.error("nimbus-devtools: unexpected message", message);
+        break;
+    }
+
+    return undefined;
+  },
+);

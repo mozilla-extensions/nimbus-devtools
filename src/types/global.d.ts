@@ -105,6 +105,17 @@ declare module "mozjexl/lib/parser/Parser" {
   }
 }
 
+type MessagingFeaturesAndTemplates = {
+  featureIds: string[];
+  templates: string[];
+};
+
+declare namespace browser.experiments.messagingSystem {
+  function getMessagingFeaturesAndTemplates(): Promise<null | MessagingFeaturesAndTemplates>;
+
+  function previewMessage(string): Promise<void>;
+}
+
 type EnrollInExperimentResult =
   | {
       enrolled: true;

@@ -1,0 +1,27 @@
+[
+  {
+    "namespace": "experiments.messagingSystem",
+    "description": "Firefox Messaging System ",
+    "functions": [
+      {
+        "name": "getMessagingFeaturesAndTemplates",
+        "type": "function",
+        "description": "Return the available messaging features and templates",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "previewMessage",
+        "type": "function",
+        "description": "Preview a messaing with about:messagepreview",
+        "parameters": [
+          {
+            "name": "message",
+            "type": "string",
+            "description": "The contents of the message, serialized to a string"
+          }
+        ]
+      }
+    ]
+  }
+]

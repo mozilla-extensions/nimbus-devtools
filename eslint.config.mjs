@@ -57,7 +57,7 @@ export default defineConfig([
   },
   {
     name: "nimbus-devtools/webext/background",
-    files: ["./src/background.js"],
+    files: ["./src/background.js", "./src/experimenter.js"],
     languageOptions: {
       ecmaVersion: 2023,
       globals: {
@@ -68,7 +68,7 @@ export default defineConfig([
   },
   {
     name: "nimbus-devtools/webext/api",
-    files: ["./src/apis/**.js"],
+    files: ["./src/apis/**/*.js"],
     extends: [
       mozilla.configs["flat/recommended"],
       // The mozilla/recommended/system-modules configuration only applies to
@@ -88,12 +88,28 @@ export default defineConfig([
     languageOptions: {
       globals: {
         ...globals.browser,
+        Cu: true,
         ExtensionAPI: true,
         ExtensionUtils: true,
       },
     },
     rules: {
+      // WebIDL interfaces are not exposed to WebExtension APIs by default.
+      "mozilla/reject-importGlobalProperties": "off",
+    },
+  },
+  {
+    name: "nimbus-devtools/webext/api/nimbus",
+    files: ["./src/apis/nimbus.js"],
+    rules: {
       "no-unused-vars": ["error", { varsIgnorePattern: "nimbus" }],
+    },
+  },
+  {
+    name: "nimbus-devtools/webext/api/messagingSystem",
+    files: ["./src/apis/messagingSystem.js"],
+    rules: {
+      "no-unused-vars": ["error", { varsIgnorePattern: "messagingSystem" }],
     },
   },
   {
