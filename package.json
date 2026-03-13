@@ -12,14 +12,14 @@
       "source": "./src/ui/index.html",
       "engines": {
         "browsers": [
-          "firefox > 137",
+          "firefox >= 150",
           "unreleased firefox versions"
         ]
       }
     }
   },
   "browserslist": [
-    "firefox > 137",
+    "firefox >= 150",
     "unreleased firefox versions"
   ],
   "scripts": {
