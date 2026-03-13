@@ -88,6 +88,7 @@ function watch() {
 
       ({ manifest, files } = parseManifest({ dev: true }));
 
+      copyFiles(files);
       fs.writeFileSync(
         path.join(DIST_DIR, MANIFEST),
         JSON.stringify(manifest, null, 2),
