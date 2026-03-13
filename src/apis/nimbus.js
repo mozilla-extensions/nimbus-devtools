@@ -340,10 +340,9 @@ var nimbus = class extends ExtensionAPI {
 
           async unenroll(slug) {
             try {
-              return await lazy.ExperimentManager.unenroll(
-                slug,
-                "nimbus-devtools",
-              );
+              return await lazy.ExperimentManager.unenroll(slug, {
+                reason: "nimbus-devtools",
+              });
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
