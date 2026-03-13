@@ -12,11 +12,6 @@ import {
 
 import { AddToastParams, useToastsContext } from "../hooks/useToasts";
 
-const PROD_URL =
-  "https://experimenter.services.mozilla.com/api/v6/experiments/";
-const STAGE_URL =
-  "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v6/experiments/";
-
 type Status = "Live" | "Preview";
 
 enum Environment {
@@ -24,9 +19,17 @@ enum Environment {
   STAGE = "stage",
 }
 
-const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
-  experiment,
-}) => {
+const EXPERIMENTER_API = {
+  [Environment.PROD]:
+    "https://experimenter.services.mozilla.com/api/v6/experiments/",
+  [Environment.STAGE]:
+    "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v6/experiments/",
+};
+
+const ExperimentRow: FC<{
+  environment: Environment;
+  experiment: NimbusExperiment;
+}> = ({ environment, experiment }) => {
   const { addToast } = useToastsContext();
   const branchSlugs = useMemo(
     () => experiment.branches?.map((b) => b.slug),
@@ -57,9 +60,9 @@ const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
   }, [experiment, selectedBranch, addToast]);
 
   const handleEnroll = useCallback(async () => {
-    const toast = await tryEnroll(experiment, selectedBranch);
+    const toast = await tryEnroll(environment, experiment.slug, selectedBranch);
     addToast(toast);
-  }, [experiment, selectedBranch, addToast]);
+  }, [environment, experiment, selectedBranch, addToast]);
 
   return (
     <tr>
@@ -110,10 +113,10 @@ const ExperimentBrowserPage: FC = () => {
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
-      let url = environment === Environment.PROD ? PROD_URL : STAGE_URL;
-      url += `?status=${status}`;
+      const url = new URL(EXPERIMENTER_API[environment]);
+      url.searchParams.append("status", status);
       if (forceRefresh) {
-        url += `&bust-cache=${Date.now()}`;
+        url.searchParams.append("bust-cache", Date.now().toString());
       }
 
       try {
@@ -142,9 +145,13 @@ const ExperimentBrowserPage: FC = () => {
   const experimentRows = useMemo(
     () =>
       experiments.map((experiment) => (
-        <ExperimentRow key={experiment.slug} experiment={experiment} />
+        <ExperimentRow
+          key={experiment.slug}
+          environment={environment}
+          experiment={experiment}
+        />
       )),
-    [experiments],
+    [environment, experiments],
   );
 
   return (
@@ -202,9 +209,23 @@ const ExperimentBrowserPage: FC = () => {
 };
 
 async function tryEnroll(
-  experiment: NimbusExperiment,
+  environment: Environment,
+  slug: string,
   branchSlug: string,
 ): Promise<AddToastParams> {
+  const url = new URL(slug, EXPERIMENTER_API[environment]);
+  url.searchParams.append("bust-cache", Date.now().toString());
+
+  let experiment: object;
+  try {
+    experiment = await fetch(url).then((rsp) => rsp.json() as object);
+  } catch (error) {
+    return {
+      message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
+      variant: "danger",
+    };
+  }
+
   try {
     const enrolled = await browser.experiments.nimbus.forceEnroll(
       experiment,
