@@ -1,6 +1,23 @@
-import { elements as grammar } from "mozjexl/lib/grammar";
+import { elements as baseGrammar } from "mozjexl/lib/grammar";
 import Lexer from "mozjexl/lib/Lexer";
 import Parser, { ASTNode, Identifier } from "mozjexl/lib/parser/Parser";
+
+const grammar = {
+  ...baseGrammar,
+
+  // See-also https://searchfox.org/firefox-main/rev/8ce9d585aca55919997d1a05506c69e309369167/toolkit/components/utils/FilterExpressions.sys.mjs#48
+  intersect: {
+    type: "binaryOp",
+    precedence: 40,
+    eval: function intersect(a: unknown, b: unknown): undefined | unknown[] {
+      if (!Array.isArray(a) || !Array.isArray(b)) {
+        return undefined;
+      }
+
+      return a.filter((item) => b.includes(item)) as unknown[];
+    },
+  },
+};
 
 /**
  * Evaluates a JEXL expression within a given context.
