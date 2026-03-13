@@ -14,12 +14,33 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ClientEnvironment: "resource://normandy/lib/ClientEnvironment.sys.mjs",
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
-  ExperimentAPI: "resource://nimbus/ExperimentAPI.sys.mjs",
   FilterExpressions:
     "resource://gre/modules/components-utils/FilterExpressions.sys.mjs",
-  NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
 });
+
+ChromeUtils.defineLazyGetter(lazy, "_ExperimentAPI", () => {
+  try {
+    return ChromeUtils.importESModule(
+      "moz-src:///toolkit/components/nimbus/ExperimentAPI.sys.mjs",
+    );
+  } catch {
+    return ChromeUtils.importESModule(
+      "resource://nimbus/ExperimentAPI.sys.mjs",
+    );
+  }
+});
+
+ChromeUtils.defineLazyGetter(
+  lazy,
+  "ExperimentAPI",
+  () => lazy._ExperimentAPI.ExperimentAPI,
+);
+ChromeUtils.defineLazyGetter(
+  lazy,
+  "NimbusFeatures",
+  () => lazy._ExperimentAPI.NimbusFeatures,
+);
 
 ChromeUtils.defineLazyGetter(
   lazy,
