@@ -24,7 +24,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
 ChromeUtils.defineLazyGetter(
   lazy,
   "ExperimentManager",
-  () => lazy.ExperimentAPI._manager,
+  () => lazy.ExperimentAPI.manager,
 );
 ChromeUtils.defineLazyGetter(
   lazy,
