@@ -11,7 +11,6 @@ const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
   ASRouterTargeting: "resource:///modules/asrouter/ASRouterTargeting.sys.mjs",
-  ClientEnvironment: "resource://normandy/lib/ClientEnvironment.sys.mjs",
   ClientEnvironmentBase:
     "resource://gre/modules/components-utils/ClientEnvironment.sys.mjs",
   FilterExpressions:
@@ -289,11 +288,6 @@ var nimbus = class extends ExtensionAPI {
               // This code is based on the implementation from:
               // https://searchfox.org/mozilla-central/source/toolkit/components/messaging-system/targeting/Targeting.sys.mjs#31-64
               // We are unable to use it directly because it is not exported.
-              locale: lazy.ASRouterTargeting.Environment.locale,
-              localeLanguageCode:
-                lazy.ASRouterTargeting.Environment.localeLanguageCode,
-              region: lazy.ASRouterTargeting.Environment.region,
-              userId: lazy.ClientEnvironment.userId,
               version: AppConstants.MOZ_APP_VERSION_DISPLAY,
               channel:
                 lazy.TelemetryEnvironment.currentEnvironment.settings.update
