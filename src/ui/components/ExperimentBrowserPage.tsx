@@ -69,7 +69,7 @@ const ExperimentRow: FC<{ experiment: NimbusExperiment }> = ({
       </td>
       <td className="text-center align-middle px-2">{experiment.channel}</td>
       <td className="text-center align-middle px-2">
-        {experiment.isEnrollmentPaused ? "Enrolling" : "Enrollment Paused"}
+        {experiment.isEnrollmentPaused ? "Enrollment Paused" : "Enrolling"}
       </td>
       <td className="text-end align-middle wide-column">
         <Container className="d-flex align-items-center">
