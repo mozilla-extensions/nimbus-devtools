@@ -3,9 +3,7 @@
 Nimbus Dev Tools is a browser extension for Firefox that aims to help developers
 design and debug experiments on the [Nimbus experimentation platform][nimbus].
 
-
 [nimbus]: https://experimenter.services.mozilla.com/nimbus/
-
 
 ## Building
 
@@ -34,9 +32,7 @@ This will launch a copy of Firefox Nightly with the extension automatically
 loaded. Any changes to source files will cause the addon to be rebuilt and
 reloaded in the browser.
 
-
 [nightly]: https://www.mozilla.org/en-CA/firefox/channel/desktop/
-
 
 ### NPM Scripts
 

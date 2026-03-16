@@ -2,133 +2,134 @@
 @import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
 :root {
-    --colour-primary: #6a3d72;
-    --colour-secondary: #44144c;
-    --colour-tertiary: #281548;
-    --colour-primary-light: #f0eaf0;
-    --colour-primary-medium: #c7bed4;
-    --colour-gray: #D4D0D0;
-    --box-shadow-hover: rgba(0, 0, 0, 0.2);
+  --colour-primary: #6a3d72;
+  --colour-secondary: #44144c;
+  --colour-tertiary: #281548;
+  --colour-primary-light: #f0eaf0;
+  --colour-primary-medium: #c7bed4;
+  --colour-gray: #d4d0d0;
+  --box-shadow-hover: rgba(0, 0, 0, 0.2);
 }
 
-body, html {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+body,
+html {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .navbar {
-    background-color: var(--colour-secondary);
+  background-color: var(--colour-secondary);
 }
 
 .small-font {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }
 
 .light-bg {
-    background-color: var(--colour-primary-light);
+  background-color: var(--colour-primary-light);
 }
 
 .sidebar {
-    width: 14.4rem;
-    left: 0;
-    top: 4.1rem;
-    height: calc(100% - 5.1rem);
-    overflow-y: auto;
+  width: 14.4rem;
+  left: 0;
+  top: 4.1rem;
+  height: calc(100% - 5.1rem);
+  overflow-y: auto;
 }
 
 .sidebar__link {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 
 .sidebar__link:hover {
-    background-color: var(--colour-primary-medium);
+  background-color: var(--colour-primary-medium);
 }
 
 .sidebar__link.active {
-    background-color: var(--colour-primary);
-    color: var(--colour-primary-light);
+  background-color: var(--colour-primary);
+  color: var(--colour-primary-light);
 }
 
 .main-content {
-    width: calc(100% - 15rem);
-    height: calc(100% - 4.7rem);
-    position: fixed;
-    left: 15rem;
-    top: 4.1rem;
-    overflow-y: auto;
+  width: calc(100% - 15rem);
+  height: calc(100% - 4.7rem);
+  position: fixed;
+  left: 15rem;
+  top: 4.1rem;
+  overflow-y: auto;
 }
 
 .text-input {
-    overflow-y: auto;
-    resize: none;
+  overflow-y: auto;
+  resize: none;
 }
 
 .long-input {
-    height: calc(100vh - 10.3rem);
+  height: calc(100vh - 10.3rem);
 }
 
 .medium-input {
-    height: calc(100vh - 13.4rem);
+  height: calc(100vh - 13.4rem);
 }
 
 .dark-button {
-    background-color: var(--colour-secondary);
+  background-color: var(--colour-secondary);
 }
 
 .dark-button:hover {
-    background-color: var(--colour-tertiary);
+  background-color: var(--colour-tertiary);
 }
 
 .primary-divider {
-    border-top: 2px solid var(--colour-primary);
+  border-top: 2px solid var(--colour-primary);
 }
 
 .section-line {
-    border-top: 2px solid var(--colour-gray);
+  border-top: 2px solid var(--colour-gray);
 }
 
 .secondary-fg {
-    color: var(--colour-secondary);
+  color: var(--colour-secondary);
 }
 
 .large-checkbox {
-    transform: scale(1.5);
-} 
+  transform: scale(1.5);
+}
 
 .checkbox-border {
-    height: 2.75em;
+  height: 2.75em;
 }
-  
+
 pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;  
-    overflow: auto; 
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: auto;
 }
 
 .short-text {
-    height: 3em;
+  height: 3em;
 }
 
 .long-text {
-    height: 9em;
+  height: 9em;
 }
 
 .primary-fg {
-    color: var(--colour-primary);
+  color: var(--colour-primary);
 }
 
 .option-button:hover {
-    box-shadow: 4px 4px 8px var(--box-shadow-hover);
+  box-shadow: 4px 4px 8px var(--box-shadow-hover);
 }
 
 .option-button:active {
-    background-color: var(--colour-gray);
+  background-color: var(--colour-gray);
 }
 
 .wide-column {
-    width: 18rem;
+  width: 18rem;
 }
 
 .grey-border {
-    border: 2px solid var(--colour-gray);
+  border: 2px solid var(--colour-gray);
 }

@@ -1,1 +1,4 @@
+**/*.html
+
+.taskcluster.yml
 package-lock.json

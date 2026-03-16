@@ -34,9 +34,7 @@ git push origin --tags
 
 - [ ] Fill out the [Mozilla Add On Review Request Intake Form][add-on-intake-form]:
   1. Submit a review request for an updated add-on
-
      1. Fill in the following fields:
-
         - **Summary**: Updated Add-on Review Request nimbus-devtools VERSION
         - **Add-on name**: nimbus-devtools
         - **Add-on version**: VERSION
@@ -44,9 +42,10 @@ git push origin --tags
           https://github.com/mozilla-extensions/nimbus-devtools/tree/release/vVERSION
         - **Release schedule for this submission:** when available
         - **Intended distrbution (AMO or Self-hosted):** self-hosted (github release)
-    
+
      1. Remove or strike-out unchanged fields (description, add-on owner, etc.)
      1. Remove or strike-out all badging options except "No badging"
+
   2. Flag someone from the security team in a comment the created JIRA ticket to ask for a security
      review.
   3. Link the JIRA ticket here in a comment
