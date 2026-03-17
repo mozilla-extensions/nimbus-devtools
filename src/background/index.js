@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+import { MessageKind } from "./messages";
+
 browser.browserAction.onClicked.addListener(() =>
   browser.tabs.create({
     url: "./ui/index.html",
@@ -22,7 +24,7 @@ browser.runtime.onMessage.addListener(
     }
 
     switch (message.kind) {
-      case "nimbus-devtools:getMessagingFeaturesAndTemplates":
+      case MessageKind.GET_MESSAGING_FEATURES_AND_TEMPLATES:
         browser.experiments.messagingSystem
           .getMessagingFeaturesAndTemplates()
           .then((v) => {
@@ -32,7 +34,7 @@ browser.runtime.onMessage.addListener(
 
         return true;
 
-      case "nimbus-devtools:previewMessage":
+      case MessageKind.PREVIEW_MESSAGE:
         browser.experiments.messagingSystem.previewMessage(message.message);
         break;
 

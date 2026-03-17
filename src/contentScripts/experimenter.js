@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+import { MessageKind } from "../background/messages";
+
 (async function () {
   const match = new URLPattern({ pathname: "/nimbus/:slug/:view/" }).exec(
     document.location,
@@ -60,7 +62,7 @@ function getExperimentMetadata() {
 
 async function getMessagingFeaturesAndTemplates() {
   return browser.runtime.sendMessage({
-    kind: "nimbus-devtools:getMessagingFeaturesAndTemplates",
+    kind: MessageKind.GET_MESSAGING_FEATURES_AND_TEMPLATES,
   });
 }
 
@@ -165,7 +167,7 @@ class ExperimenterIntegration {
 
   async previewMessage(message) {
     return browser.runtime.sendMessage({
-      kind: "nimbus-devtools:previewMessage",
+      kind: MessageKind.PREVIEW_MESSAGE,
       message,
     });
   }
