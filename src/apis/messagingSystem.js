@@ -5,9 +5,7 @@
 
 Cu.importGlobalProperties(["URL"]);
 
-const lazy = {};
-
-ChromeUtils.defineESModuleGetters(lazy, {
+ChromeUtils.defineESModuleGetters(this, {
   MESSAGING_EXPERIMENTS_DEFAULT_FEATURES:
     "resource:///modules/asrouter/MessagingExperimentConstants.sys.mjs",
 
@@ -45,14 +43,13 @@ var messagingSystem = class extends ExtensionAPI {
           getMessagingFeaturesAndTemplates() {
             let templates;
             try {
-              templates =
-                lazy.AboutMessagePreviewParent.getSupportedTemplates();
+              templates = AboutMessagePreviewParent.getSupportedTemplates();
             } catch {
               return null;
             }
 
             return {
-              featureIds: lazy.MESSAGING_EXPERIMENTS_DEFAULT_FEATURES,
+              featureIds: MESSAGING_EXPERIMENTS_DEFAULT_FEATURES,
               templates,
             };
           },

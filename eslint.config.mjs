@@ -96,6 +96,9 @@ export default defineConfig([
     rules: {
       // WebIDL interfaces are not exposed to WebExtension APIs by default.
       "mozilla/reject-importGlobalProperties": "off",
+
+      // Using let/const in global scope leads to redefinition errors.
+      "mozilla/lazy-getter-object-name": "off",
     },
   },
   {
