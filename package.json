@@ -6,16 +6,24 @@
   "private": true,
   "repository": "https://github.com/mozilla-extensions/nimbus-devtools",
   "targets": {
+    "background": {
+      "distDir": "./dist/background",
+      "publicUrl": "./",
+      "source": "./src/background/index.js",
+      "outputFormat": "esmodule"
+    },
+    "contentScripts": {
+      "distDir": "./dist/contentScripts",
+      "publicUrl": "./",
+      "source": [
+        "./src/contentScripts/experimenter.js"
+      ],
+      "outputFormat": "esmodule"
+    },
     "ui": {
       "distDir": "./dist/ui",
       "publicUrl": "./",
-      "source": "./src/ui/index.html",
-      "engines": {
-        "browsers": [
-          "firefox >= 150",
-          "unreleased firefox versions"
-        ]
-      }
+      "source": "./src/ui/index.html"
     }
   },
   "browserslist": [
@@ -23,8 +31,8 @@
     "unreleased firefox versions"
   ],
   "scripts": {
-    "build": "npm-run-all clean build:manifest build:ui build:package",
-    "build:ui": "parcel build --target ui",
+    "build": "npm-run-all clean build:manifest build:parcel build:package",
+    "build:parcel": "parcel build --no-autoinstall",
     "build:manifest": "node ./bin/build-manifest.mjs",
     "build:package": "web-ext build -s dist --overwrite-dest --filename nimbus-devtools.xpi",
     "clean": "node ./bin/clean.mjs",
@@ -36,9 +44,9 @@
     "fmt": "prettier -w .",
     "fix": "npm-run-all fix:eslint fmt",
     "fix:eslint": "npm run lint:eslint -- --fix",
-    "watch": "npm-run-all build --parallel --race watch:manifest watch:ui watch:web-ext",
+    "watch": "npm-run-all build --parallel --race watch:manifest watch:parcel watch:web-ext",
     "watch:manifest": "node ./bin/build-manifest.mjs --watch",
-    "watch:ui": "parcel watch --no-hmr --target ui",
+    "watch:parcel": "parcel watch --no-hmr --no-autoinstall",
     "watch:web-ext": "web-ext run -s dist -f nightly",
     "web-ext": "web-ext"
   },
@@ -75,8 +83,5 @@
     "react-dom": "^18.3.1",
     "react-router": "^6.30.3",
     "react-router-dom": "^6.30.3"
-  },
-  "engines": {
-    "node": ">=20.0.0"
   }
 }

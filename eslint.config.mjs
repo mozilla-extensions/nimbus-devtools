@@ -57,7 +57,7 @@ export default defineConfig([
   },
   {
     name: "nimbus-devtools/webext/background",
-    files: ["./src/background.js", "./src/experimenter.js"],
+    files: ["./src/background/**/*.js", "./src/contentScripts/**/*.js"],
     languageOptions: {
       ecmaVersion: 2023,
       globals: {

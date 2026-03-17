@@ -17,7 +17,7 @@
     "browser_style": true
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background/index.js"]
   },
   "content_scripts": [
     {
@@ -25,7 +25,7 @@
         "https://experimenter.services.mozilla.com/*",
         "https://stage.experimenter.nonprod.webservices.mozgcp.net/*"
       ],
-      "js": ["experimenter.js"]
+      "js": ["contentScripts/experimenter.js"]
     }
   ],
   "experiment_apis": {

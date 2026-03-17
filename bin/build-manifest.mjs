@@ -10,105 +10,89 @@ import { fileURLToPath } from "node:url";
 
 import Watcher from "watcher";
 
-const DIRNAME = path.dirname(fileURLToPath(import.meta.url));
-const SRC_DIR = path.resolve(DIRNAME, "..", "src");
-const DIST_DIR = path.resolve(DIRNAME, "..", "dist");
-const MANIFEST = "manifest.json";
-const MANIFEST_PATH = path.join(SRC_DIR, MANIFEST);
+const BIN_DIR = path.dirname(fileURLToPath(import.meta.url));
 
-/**
- * Parse manifest.json and return the list of files required by the extension.
- */
-function parseManifest({ absolute = false, dev = false } = {}) {
-  let files = [];
+const REPO_ROOT = path.resolve(BIN_DIR, "..");
+const SRC_DIR = path.join(REPO_ROOT, "src");
+const DIST_DIR = path.join(REPO_ROOT, "dist");
 
-  const contents = fs.readFileSync(MANIFEST_PATH, {
-    encoding: "utf-8",
-  });
-  const manifest = JSON.parse(contents);
+const MANIFEST_FILENAME = "manifest.json";
+const MANIFEST_PATH = path.join(SRC_DIR, MANIFEST_FILENAME);
+const DIST_MANIFEST_PATH = path.join(DIST_DIR, MANIFEST_FILENAME);
 
-  files.push(...(manifest.background?.scripts ?? []));
-  files.push(
-    ...(manifest.content_scripts?.flatMap((script) => script.js) ?? []),
-  );
-
-  for (const api of Object.values(manifest.experiment_apis ?? {})) {
-    files.push(api.schema);
-
-    if (api.parent) {
-      files.push(api.parent.script);
-    }
-
-    if (api.child) {
-      files.push(api.child.script);
-    }
+(function main() {
+  if (process.argv.length === 3 && process.argv[2] == "--watch") {
+    return watch();
   }
 
-  files.push(...Object.values(manifest.icons ?? {}));
-
-  if (absolute) {
-    files = files.map((f) => path.join(SRC_DIR, f));
-  }
-
-  if (dev) {
-    for (const contentScript of manifest.content_scripts) {
-      contentScript.matches.push("http://localhost/*");
-    }
-  }
-
-  return { manifest, files };
-}
-
-function copyFiles(files) {
-  for (const file of files) {
-    const srcFile = path.join(SRC_DIR, file);
-    const distFile = path.join(DIST_DIR, file);
-
-    const dir = path.dirname(distFile);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    fs.copyFileSync(srcFile, distFile);
-  }
-}
+  return build();
+})();
 
 function watch() {
   let watcher;
 
   function makeWatcher() {
-    let { manifest, files } = parseManifest({ absolute: true, dev: true });
-
-    watcher = new Watcher(files);
-    watcher.on("all", (event, targetPath) => {
-      if (event === "change" && targetPath === MANIFEST_PATH) {
-        watcher.close();
-        makeWatcher();
-      }
-
-      ({ manifest, files } = parseManifest({ dev: true }));
-
-      copyFiles(files);
-      fs.writeFileSync(
-        path.join(DIST_DIR, MANIFEST),
-        JSON.stringify(manifest, null, 2),
-        { encoding: "utf-8" },
-      );
-    });
+    const toWatch = Array.from(buildFileMap({ includeManifest: true }).keys());
+    watcher = new Watcher(toWatch);
+    watcher.on("all", () => build({ dev: true }));
   }
 
   makeWatcher();
 }
 
-if (process.argv.length === 3 && process.argv[2] == "--watch") {
-  watch();
-} else {
-  const { manifest, files } = parseManifest();
+function build({ dev = false } = {}) {
+  for (const [srcFile, dstFile] of buildFileMap({ includeManifest: !dev })) {
+    copyFileSync(srcFile, dstFile);
+  }
 
-  copyFiles(files);
-  fs.writeFileSync(
-    path.join(DIST_DIR, MANIFEST),
-    JSON.stringify(manifest, null, 2),
-    { encoding: "utf-8" },
+  if (dev) {
+    const content = fs.readFileSync(MANIFEST_PATH, { encoding: "utf-8" });
+    const manifest = JSON.parse(content);
+
+    for (const script of manifest.content_scripts) {
+      script.matches.push("http://localhost/*");
+    }
+
+    fs.writeFileSync(DIST_MANIFEST_PATH, JSON.stringify(manifest));
+  }
+}
+
+function getTargetPath(srcDir, destDir, fileName) {
+  const relativePath = path.relative(srcDir, fileName);
+  return path.resolve(destDir, relativePath);
+}
+
+function buildFileMap({ includeManifest = false } = {}) {
+  const files = new Map(
+    ["apis", "icons"].flatMap((subdirectory) => {
+      const srcDir = path.join(SRC_DIR, subdirectory);
+      const destDir = path.join(DIST_DIR, subdirectory);
+
+      return fs
+        .readdirSync(srcDir, {
+          withFileTypes: true,
+          recursive: true,
+          encoding: "utf-8",
+        })
+        .filter((dirent) => dirent.isFile())
+        .map((dirent) => {
+          const fileName = path.join(dirent.parentPath, dirent.name);
+          return [fileName, getTargetPath(srcDir, destDir, fileName)];
+        });
+    }),
   );
+
+  if (includeManifest) {
+    files.set(MANIFEST_PATH, DIST_MANIFEST_PATH);
+  }
+
+  return files;
+}
+
+function copyFileSync(src, dest) {
+  const parent = path.dirname(dest);
+  if (!fs.existsSync(parent)) {
+    fs.mkdirSync(parent, { recursive: true });
+  }
+  fs.copyFileSync(src, dest);
 }
