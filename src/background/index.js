@@ -13,7 +13,6 @@ browser.browserAction.onClicked.addListener(() =>
 
 browser.runtime.onMessage.addListener(
   function (message, _sender, sendResponse) {
-    console.log(message);
     if (
       typeof message !== "object" ||
       message === null ||
@@ -24,13 +23,20 @@ browser.runtime.onMessage.addListener(
     }
 
     switch (message.kind) {
+      case MessageKind.FORCE_ENROLL:
+        browser.experiments.nimbus
+          .forceEnroll(message.recipe, message.branchSlug)
+          .then(
+            () => sendResponse({}),
+            (error) => sendResponse({ error }),
+          );
+
+        return true;
+
       case MessageKind.GET_MESSAGING_FEATURES_AND_TEMPLATES:
         browser.experiments.messagingSystem
           .getMessagingFeaturesAndTemplates()
-          .then((v) => {
-            console.log("rv", v);
-            sendResponse(v);
-          });
+          .then((v) => sendResponse(v));
 
         return true;
 

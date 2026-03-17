@@ -4,6 +4,7 @@
  */
 
 export const MessageKind = Object.freeze({
+  FORCE_ENROLL: "nimbus-devtools:forceEnroll",
   GET_MESSAGING_FEATURES_AND_TEMPLATES:
     "nimbus-devtools:getMessagingFeaturesAndTemplates",
   PREVIEW_MESSAGE: "nimbus-devtools:previewMessage",

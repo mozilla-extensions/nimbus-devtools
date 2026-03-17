@@ -81,6 +81,29 @@ class ExperimenterIntegration {
    */
   handleSummaryPage() {
     document
+      .querySelector("[data-nimbus-devtools-preview-url-pane]")
+      ?.classList.add("d-none");
+
+    document
+      .querySelectorAll("[data-nimbus-devtools-opt-in-pane]")
+      .forEach((pane) => {
+        pane
+          .querySelector("[data-nimbus-devtools-enroll-button]")
+          .addEventListener("click", () => {
+            const recipe = JSON.parse(
+              document.querySelector(
+                "[data-nimbus-devtools-recipe-json] textarea",
+              ).value,
+            );
+            const branchSlug = pane.querySelector("[name='branch']")?.value;
+
+            this.forceEnroll(recipe, branchSlug);
+          });
+
+        pane.classList.remove("d-none");
+      });
+
+    document
       .querySelectorAll("textarea[data-nimbus-devtools-feature-value]")
       .forEach((el) => {
         if (!this.featureIds.includes(el.dataset.featureId)) {
@@ -150,6 +173,22 @@ class ExperimenterIntegration {
     });
 
     insertControls();
+  }
+
+  async forceEnroll(recipe, branchSlug) {
+    try {
+      await browser.runtime.sendMessage({
+        kind: MessageKind.FORCE_ENROLL,
+        recipe,
+        branchSlug,
+      });
+
+      this.createAndShowToast("Enrolled", { classList: ["text-bg-success"] });
+    } catch (error) {
+      this.createAndShowToast(`Could not enroll: ${error}`, {
+        classList: ["text-bg-danger"],
+      });
+    }
   }
 
   async tryPreviewMessage(message) {
