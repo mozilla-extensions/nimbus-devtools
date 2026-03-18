@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-import { MessageKind } from "../background/messages";
+import NimbusDevtoolsAPI from "./lib/api.js";
 
 (async function () {
   const match = new URLPattern({ pathname: "/nimbus/:slug/:view/" }).exec(
@@ -26,7 +26,7 @@ import { MessageKind } from "../background/messages";
     return;
   }
 
-  const messaging = await getMessagingFeaturesAndTemplates();
+  const messaging = await NimbusDevtoolsAPI.getMessagingFeaturesAndTemplates();
   if (!messaging) {
     return;
   }
@@ -58,12 +58,6 @@ function getExperimentMetadata() {
   } catch {
     return null;
   }
-}
-
-async function getMessagingFeaturesAndTemplates() {
-  return browser.runtime.sendMessage({
-    kind: MessageKind.GET_MESSAGING_FEATURES_AND_TEMPLATES,
-  });
 }
 
 class ExperimenterIntegration {
@@ -128,7 +122,7 @@ class ExperimenterIntegration {
             .querySelectorAll("[data-nimbus-devtools-preview-button]")
             .forEach((btn) => {
               btn.addEventListener("click", () =>
-                this.previewMessage(el.value),
+                NimbusDevtoolsAPI.previewMessage(el.value),
               );
               btn.classList.remove("d-none");
             });
@@ -177,11 +171,7 @@ class ExperimenterIntegration {
 
   async forceEnroll(recipe, branchSlug) {
     try {
-      await browser.runtime.sendMessage({
-        kind: MessageKind.FORCE_ENROLL,
-        recipe,
-        branchSlug,
-      });
+      await NimbusDevtoolsAPI.forceEnroll(recipe, branchSlug);
 
       this.createAndShowToast("Enrolled", { classList: ["text-bg-success"] });
     } catch (error) {
@@ -201,14 +191,7 @@ class ExperimenterIntegration {
       return;
     }
 
-    return this.previewMessage(message);
-  }
-
-  async previewMessage(message) {
-    return browser.runtime.sendMessage({
-      kind: MessageKind.PREVIEW_MESSAGE,
-      message,
-    });
+    return NimbusDevtoolsAPI.previewMessage(message);
   }
 
   createAndShowToast(content, { classList = [] } = {}) {
