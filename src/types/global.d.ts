@@ -163,4 +163,9 @@ declare namespace browser.experiments.nimbus {
   function deleteInactiveEnrollment(slug: string): Promise<void>;
 
   function generateTestIds(recipe: object, branchSlug: string): Promise<string>;
+
+  function substituteLocalizations(
+    values: Record<string, unknown>,
+    localizations: Record<string, string>,
+  ): Promise<Record<string, unknown>>;
 }

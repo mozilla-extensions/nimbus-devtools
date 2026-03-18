@@ -38,6 +38,11 @@ ChromeUtils.defineLazyGetter(
   "NimbusFeatures",
   () => _ExperimentAPI.NimbusFeatures,
 );
+ChromeUtils.defineLazyGetter(
+  this,
+  "ExperimentFeature",
+  () => _ExperimentAPI._ExperimentFeature,
+);
 
 ChromeUtils.defineLazyGetter(
   this,
@@ -354,6 +359,29 @@ var nimbus = class extends ExtensionAPI {
             try {
               const result = await ExperimentManager.generateTestIds(recipe);
               return result[branchSlug];
+            } catch (error) {
+              console.error(error);
+              throw new ExtensionError(String(error));
+            }
+          },
+
+          async substituteLocalizations(values, localizations) {
+            try {
+              const missingIds = new Set();
+              const localizedValues =
+                ExperimentFeature._substituteLocalizations(
+                  values,
+                  localizations,
+                  missingIds,
+                );
+
+              if (missingIds.size) {
+                throw new ExtensionError(
+                  "Could not substitute values: incomplete localizations",
+                );
+              }
+
+              return localizedValues;
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));

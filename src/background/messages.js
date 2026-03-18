@@ -8,4 +8,5 @@ export const MessageKind = Object.freeze({
   GET_MESSAGING_FEATURES_AND_TEMPLATES:
     "nimbus-devtools:getMessagingFeaturesAndTemplates",
   PREVIEW_MESSAGE: "nimbus-devtools:previewMessage",
+  SUBSTITUTE_LOCALIZATIONS: "nimbus-devtools:substituteLocalizations",
 });

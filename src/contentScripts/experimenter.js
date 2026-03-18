@@ -99,17 +99,14 @@ class ExperimenterIntegration {
 
     document
       .querySelectorAll("textarea[data-nimbus-devtools-feature-value]")
-      .forEach((el) => {
-        if (!this.featureIds.includes(el.dataset.featureId)) {
-          return;
-        }
-
-        const container = el.closest(".readonly-json-collapsible");
+      .forEach((textarea) => {
+        const container = textarea.closest(".readonly-json-collapsible");
         if (!container) {
           return;
         }
 
-        const result = this.validateMessage(el.value);
+        const result = this.parseMessages(textarea.value);
+
         if (result.error) {
           container
             .querySelectorAll("[data-nimbus-devtools-cannot-preview-notice]")
@@ -117,12 +114,21 @@ class ExperimenterIntegration {
               notice.title = `Cannot preview message: ${result.error}`;
               notice.classList.remove("d-none");
             });
+        } else if (this.experimentMetadata.isLocalized) {
+          container
+            .querySelectorAll("[data-nimbus-devtools-try-preview-dropdown]")
+            .forEach((dropdown) => {
+              this.updateTryPreviewDropdown(dropdown, result.messages);
+              dropdown.classList.remove("d-none");
+            });
         } else {
           container
             .querySelectorAll("[data-nimbus-devtools-preview-button]")
             .forEach((btn) => {
               btn.addEventListener("click", () =>
-                NimbusDevtoolsAPI.previewMessage(el.value),
+                NimbusDevtoolsAPI.previewMessage(
+                  JSON.stringify(result.messages[0].content),
+                ),
               );
               btn.classList.remove("d-none");
             });
@@ -146,13 +152,34 @@ class ExperimenterIntegration {
           }
 
           const input = editor.querySelector("input.value-editor");
-          const btn = editor.querySelector(
-            "[data-nimbus-devtools-try-preview-button]",
-          );
-          btn.addEventListener("click", () =>
-            this.tryPreviewMessage(input.value),
-          );
-          btn.classList.remove("d-none");
+
+          if (this.experimentMetadata.isLocalized) {
+            const dropdown = editor.querySelector(
+              "[data-nimbus-devtools-try-preview-dropdown]",
+            );
+            dropdown.addEventListener("show.bs.dropdown", (e) => {
+              const result = this.parseMessages(input.value);
+
+              if (result.error) {
+                e.preventDefault();
+                this.createAndShowToast(
+                  `Cannot preview message: ${result.error}`,
+                  { classList: ["text-bg-danger"] },
+                );
+              } else {
+                this.updateTryPreviewDropdown(dropdown, result.messages);
+              }
+            });
+            dropdown.classList.remove("d-none");
+          } else {
+            const btn = editor.querySelector(
+              "[data-nimbus-devtools-try-preview-button]",
+            );
+            btn.addEventListener("click", () =>
+              this.tryPreviewMessage(input.value),
+            );
+            btn.classList.remove("d-none");
+          }
         });
     };
 
@@ -198,7 +225,6 @@ class ExperimenterIntegration {
     const el = document
       .importNode(document.getElementById("template-toast").content, true)
       .querySelector(".toast");
-    console.log(el);
 
     el.querySelector(".toast-body").appendChild(new Text(content));
 
@@ -220,10 +246,15 @@ class ExperimenterIntegration {
 
   validateMessage(message) {
     let messageJson;
-    try {
-      messageJson = JSON.parse(message);
-    } catch {
-      return { error: "JSON parse error" };
+
+    if (typeof message === "object") {
+      messageJson = message;
+    } else {
+      try {
+        messageJson = JSON.parse(message);
+      } catch {
+        return { error: "JSON parse error" };
+      }
     }
 
     if (typeof messageJson !== "object" || messageJson === null) {
@@ -239,5 +270,100 @@ class ExperimenterIntegration {
     }
 
     return { ok: true };
+  }
+
+  parseMessages(rawJson) {
+    let content;
+    try {
+      content = JSON.parse(rawJson);
+    } catch {
+      return { error: "JSON parse error" };
+    }
+
+    if (
+      typeof content !== "object" ||
+      content === null ||
+      Array.isArray(content)
+    ) {
+      return { error: "Not a JSON object" };
+    }
+
+    if (typeof content.template === "undefined") {
+      return { error: "Message template is undefined" };
+    }
+
+    if (!this.supportedTemplates.includes(content.template)) {
+      return { error: "Unsupported template" };
+    }
+
+    if (!this.experimentMetadata.isLocalized) {
+      return {
+        messages: [{ content }],
+      };
+    }
+
+    let localizations;
+    try {
+      localizations = JSON.parse(this.experimentMetadata.localizations);
+    } catch {
+      return { error: "Could not parse localizations" };
+    }
+
+    return {
+      messages: Object.keys(localizations).map((locale) => ({
+        locale,
+        localizations: localizations[locale],
+        content,
+      })),
+    };
+  }
+
+  updateTryPreviewDropdown(dropdown, messages) {
+    const fragment = document.createDocumentFragment();
+
+    const preludeContent = document.createElement("span");
+    preludeContent.className = "dropdown-item-text";
+    preludeContent.textContent = "Preview locale:";
+
+    const prelude = document.createElement("li");
+    prelude.appendChild(preludeContent);
+
+    fragment.append(prelude);
+
+    for (const message of messages) {
+      const previewLink = document.createElement("a");
+      previewLink.className = "dropdown-item";
+      previewLink.href = "#";
+      previewLink.textContent = message.locale;
+      previewLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.previewLocalizedMessage(message);
+      });
+
+      const entry = document.createElement("li");
+      entry.appendChild(previewLink);
+
+      fragment.appendChild(entry);
+    }
+
+    dropdown.querySelector(".dropdown-menu").replaceChildren(fragment);
+  }
+
+  async previewLocalizedMessage({ localizations, content }) {
+    let localizedMessage;
+    try {
+      localizedMessage = await NimbusDevtoolsAPI.substituteLocalizations(
+        content,
+        localizations,
+      );
+    } catch (e) {
+      console.error(e);
+      this.createAndShowToast(`Could not preview message: ${e}`, {
+        classList: ["text-bg-danger"],
+      });
+      return;
+    }
+
+    this.tryPreviewMessage(JSON.stringify(localizedMessage));
   }
 }

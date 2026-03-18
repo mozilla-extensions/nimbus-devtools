@@ -191,6 +191,26 @@
             "description": "The specific branch slug of the experiment."
           }
         ]
+      },
+      {
+        "name": "substituteLocalizations",
+        "type": "function",
+        "description": "Substitute localizations into a feature value",
+        "async": true,
+        "parameters": [
+          {
+            "name": "values",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The values."
+          },
+          {
+            "name": "localizations",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The localization data for a given locale."
+          }
+        ]
       }
     ],
     "events": []

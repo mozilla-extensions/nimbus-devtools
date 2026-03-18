@@ -26,4 +26,19 @@ export default {
       message,
     });
   },
+
+  async substituteLocalizations(values, localizations) {
+    console.log(values, localizations);
+    const result = await browser.runtime.sendMessage({
+      kind: MessageKind.SUBSTITUTE_LOCALIZATIONS,
+      values,
+      localizations,
+    });
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    return result.values;
+  },
 };

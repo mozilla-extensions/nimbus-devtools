@@ -44,6 +44,17 @@ browser.runtime.onMessage.addListener(
         browser.experiments.messagingSystem.previewMessage(message.message);
         break;
 
+      case MessageKind.SUBSTITUTE_LOCALIZATIONS:
+        console.log(message.values, message.localizations);
+        browser.experiments.nimbus
+          .substituteLocalizations(message.values, message.localizations)
+          .then(
+            (values) => sendResponse({ values }),
+            (error) => sendResponse({ error }),
+          );
+
+        return true;
+
       default:
         console.error("nimbus-devtools: unexpected message", message);
         break;
