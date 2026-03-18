@@ -225,8 +225,12 @@ class ExperimenterIntegration {
       }
     }
 
-    el.addEventListener("hidden.bs.toast", () => document.body.removeChild(el));
-    document.getElementById("toasts-container").appendChild(el);
+    const toastContainer = document.getElementById("toasts-container");
+
+    el.addEventListener("hidden.bs.toast", () =>
+      toastContainer.removeChild(el),
+    );
+    toastContainer.appendChild(el);
 
     new window.wrappedJSObject.bootstrap.Toast(el).show();
   }
