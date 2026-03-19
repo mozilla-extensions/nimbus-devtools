@@ -105,7 +105,10 @@ class ExperimenterIntegration {
           return;
         }
 
-        const result = this.parseMessages(textarea.value);
+        const result = this.parseMessages(textarea.value, {
+          isLocalized: this.experimentMetadata.isLocalized,
+          localizations: this.experimentMetadata.localizations,
+        });
 
         if (result.error) {
           container
@@ -141,6 +144,9 @@ class ExperimenterIntegration {
    */
   handleUpdateBranchesPage() {
     const insertControls = () => {
+      const l10nInput = document.getElementById("id_localizations");
+      const isLocalized = !!l10nInput;
+
       document
         .querySelectorAll("[data-nimbus-devtools-feature-editor]")
         .forEach((editor) => {
@@ -153,12 +159,15 @@ class ExperimenterIntegration {
 
           const input = editor.querySelector("input.value-editor");
 
-          if (this.experimentMetadata.isLocalized) {
+          if (isLocalized) {
             const dropdown = editor.querySelector(
               "[data-nimbus-devtools-try-preview-dropdown]",
             );
             dropdown.addEventListener("show.bs.dropdown", (e) => {
-              const result = this.parseMessages(input.value);
+              const result = this.parseMessages(input.value, {
+                isLocalized,
+                localizations: l10nInput.value,
+              });
 
               if (result.error) {
                 e.preventDefault();
@@ -272,7 +281,7 @@ class ExperimenterIntegration {
     return { ok: true };
   }
 
-  parseMessages(rawJson) {
+  parseMessages(rawJson, { isLocalized, localizations: rawLocalizations }) {
     let content;
     try {
       content = JSON.parse(rawJson);
@@ -296,7 +305,7 @@ class ExperimenterIntegration {
       return { error: "Unsupported template" };
     }
 
-    if (!this.experimentMetadata.isLocalized) {
+    if (!isLocalized) {
       return {
         messages: [{ content }],
       };
@@ -304,7 +313,7 @@ class ExperimenterIntegration {
 
     let localizations;
     try {
-      localizations = JSON.parse(this.experimentMetadata.localizations);
+      localizations = JSON.parse(rawLocalizations);
     } catch {
       return { error: "Could not parse localizations" };
     }
