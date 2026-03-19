@@ -75,26 +75,31 @@ class ExperimenterIntegration {
    */
   handleSummaryPage() {
     document
-      .querySelector("[data-nimbus-devtools-preview-url-pane]")
-      ?.classList.add("d-none");
-
-    document
       .querySelectorAll("[data-nimbus-devtools-opt-in-pane]")
       .forEach((pane) => {
-        pane
+        const devtoolsRequiredSection = pane.querySelector(
+          "[data-nimbus-devtools-required]",
+        );
+        const branchSelector = pane.querySelector(
+          "[data-nimbus-devtools-force-enroll-branch-selector]",
+        );
+
+        if (!devtoolsRequiredSection || !branchSelector) {
+          return;
+        }
+
+        devtoolsRequiredSection
           .querySelector("[data-nimbus-devtools-enroll-button]")
-          .addEventListener("click", () => {
+          ?.addEventListener("click", () => {
             const recipe = JSON.parse(
               document.querySelector(
                 "[data-nimbus-devtools-recipe-json] textarea",
               ).value,
             );
-            const branchSlug = pane.querySelector("[name='branch']")?.value;
-
-            this.forceEnroll(recipe, branchSlug);
+            this.forceEnroll(recipe, branchSelector.value);
           });
 
-        pane.classList.remove("d-none");
+        devtoolsRequiredSection.classList.remove("d-none");
       });
 
     document
