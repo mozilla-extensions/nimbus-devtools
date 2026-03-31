@@ -5,6 +5,8 @@
 
 import NimbusDevtoolsAPI from "./lib/api.js";
 
+const TEMPLATE_MULTI = "multi";
+
 (async function () {
   const match = new URLPattern({ pathname: "/nimbus/:slug/:view/" }).exec(
     document.location,
@@ -110,10 +112,12 @@ class ExperimenterIntegration {
           return;
         }
 
-        const result = this.parseMessages(textarea.value, {
-          isLocalized: this.experimentMetadata.isLocalized,
-          localizations: this.experimentMetadata.localizations,
-        });
+        const result = this.parseMessages(
+          textarea.value,
+          this.experimentMetadata.isLocalized
+            ? this.experimentMetadata.localizations
+            : undefined,
+        );
 
         if (result.error) {
           container
@@ -122,23 +126,18 @@ class ExperimenterIntegration {
               notice.title = `Cannot preview message: ${result.error}`;
               notice.classList.remove("d-none");
             });
-        } else if (this.experimentMetadata.isLocalized) {
+        } else {
           container
             .querySelectorAll("[data-nimbus-devtools-try-preview-dropdown]")
             .forEach((dropdown) => {
-              this.updateTryPreviewDropdown(dropdown, result.messages);
-              dropdown.classList.remove("d-none");
-            });
-        } else {
-          container
-            .querySelectorAll("[data-nimbus-devtools-preview-button]")
-            .forEach((btn) => {
-              btn.addEventListener("click", () =>
-                NimbusDevtoolsAPI.previewMessage(
-                  JSON.stringify(result.messages[0].content),
-                ),
-              );
-              btn.classList.remove("d-none");
+              if (result.messageGroups) {
+                this.updateTryPreviewDropdown(
+                  dropdown,
+                  result.messageGroups,
+                  this.experimentMetadata.isLocalized,
+                );
+                dropdown.classList.remove("d-none");
+              }
             });
         }
       });
@@ -164,36 +163,36 @@ class ExperimenterIntegration {
 
           const input = editor.querySelector("input.value-editor");
 
-          if (isLocalized) {
-            const dropdown = editor.querySelector(
-              "[data-nimbus-devtools-try-preview-dropdown]",
+          const dropdown = editor.querySelector(
+            "[data-nimbus-devtools-try-preview-dropdown]",
+          );
+          dropdown.addEventListener("show.bs.dropdown", (e) => {
+            const result = this.parseMessages(
+              input.value,
+              isLocalized ? l10nInput.value : undefined,
             );
-            dropdown.addEventListener("show.bs.dropdown", (e) => {
-              const result = this.parseMessages(input.value, {
-                isLocalized,
-                localizations: l10nInput.value,
-              });
 
-              if (result.error) {
+            if (result.errors?.length) {
+              if (!result.messageGroups.length) {
                 e.preventDefault();
-                this.createAndShowToast(
-                  `Cannot preview message: ${result.error}`,
-                  { classList: ["text-bg-danger"] },
-                );
-              } else {
-                this.updateTryPreviewDropdown(dropdown, result.messages);
               }
-            });
-            dropdown.classList.remove("d-none");
-          } else {
-            const btn = editor.querySelector(
-              "[data-nimbus-devtools-try-preview-button]",
-            );
-            btn.addEventListener("click", () =>
-              this.tryPreviewMessage(input.value),
-            );
-            btn.classList.remove("d-none");
-          }
+
+              for (const error of result.errors) {
+                this.createAndShowToast(`Cannot preview message: ${error}`, {
+                  classList: ["text-bg-danger"],
+                });
+              }
+            }
+
+            if (result.messageGroups) {
+              this.updateTryPreviewDropdown(
+                dropdown,
+                result.messageGroups,
+                isLocalized,
+              );
+            }
+          });
+          dropdown.classList.remove("d-none");
         });
     };
 
@@ -286,81 +285,190 @@ class ExperimenterIntegration {
     return { ok: true };
   }
 
-  parseMessages(rawJson, { isLocalized, localizations: rawLocalizations }) {
+  parseMessages(rawJson, rawLocalizations) {
     let content;
     try {
       content = JSON.parse(rawJson);
     } catch {
-      return { error: "JSON parse error" };
+      return { errors: ["JSON parse error"] };
     }
 
+    let localizations = undefined;
+    if (typeof rawLocalizations !== "undefined") {
+      try {
+        localizations = JSON.parse(rawLocalizations);
+      } catch {
+        return { errors: ["Could not parse localizations"] };
+      }
+
+      if (typeof localizations !== "object" || localizations === null) {
+        return { errors: ["Invalid localizations"] };
+      }
+    }
+
+    return this.extractMessageGroups(content, localizations);
+  }
+
+  extractMessageGroups(content, localizations) {
     if (
       typeof content !== "object" ||
       content === null ||
       Array.isArray(content)
     ) {
-      return { error: "Not a JSON object" };
+      return { errors: ["Not a JSON object"] };
     }
 
     if (typeof content.template === "undefined") {
-      return { error: "Message template is undefined" };
+      return { errors: ["Message template is undefined"] };
     }
 
-    if (!this.supportedTemplates.includes(content.template)) {
-      return { error: "Unsupported template" };
+    if (
+      !this.supportedTemplates.includes(content.template) &&
+      content.template !== TEMPLATE_MULTI
+    ) {
+      return { errors: ["Unsupported template"] };
     }
 
-    if (!isLocalized) {
+    if (content.template === TEMPLATE_MULTI) {
+      if (Array.isArray(content.messages) && content.messages.length) {
+        const errors = [];
+        const messageGroups = [];
+
+        for (const message of content.messages) {
+          const result = this.extractMessageGroups(message, localizations);
+
+          if (result.errors) {
+            errors.push(...result.errors);
+          }
+
+          if (result.messageGroups) {
+            messageGroups.push(...result.messageGroups);
+          }
+        }
+
+        const rv = {};
+
+        if (errors.length) {
+          rv.errors = errors;
+        }
+        if (messageGroups.length) {
+          rv.messageGroups = messageGroups;
+        }
+
+        return rv;
+      } else {
+        return { errors: ["Empty multi-message"] };
+      }
+    }
+
+    if (typeof content.id !== "string" || content.id.length === 0) {
+      return { errors: ["Empty message ID"] };
+    }
+
+    if (typeof localizations === "undefined") {
       return {
-        messages: [{ content }],
+        messageGroups: [{ groupId: content.id, messages: [{ content }] }],
       };
     }
 
-    let localizations;
-    try {
-      localizations = JSON.parse(rawLocalizations);
-    } catch {
-      return { error: "Could not parse localizations" };
-    }
-
     return {
-      messages: Object.keys(localizations).map((locale) => ({
-        locale,
-        localizations: localizations[locale],
-        content,
-      })),
+      messageGroups: [
+        {
+          groupId: content.id,
+          messages: Object.keys(localizations).map((locale) => ({
+            content,
+            locale,
+            localizations: localizations[locale],
+          })),
+        },
+      ],
     };
   }
 
-  updateTryPreviewDropdown(dropdown, messages) {
+  updateTryPreviewDropdown(dropdown, messageGroups, isLocalized) {
+    if (messageGroups.length === 0) {
+      return;
+    }
+
     const fragment = document.createDocumentFragment();
 
-    const preludeContent = document.createElement("span");
-    preludeContent.className = "dropdown-item-text";
-    preludeContent.textContent = "Preview locale:";
+    for (const [i, { groupId, messages }] of messageGroups.entries()) {
+      if (isLocalized && i > 0) {
+        const divider = document.createElement("hr");
+        divider.className = "dropdown-divider";
 
-    const prelude = document.createElement("li");
-    prelude.appendChild(preludeContent);
+        const entry = document.createElement("li");
+        entry.appendChild(divider);
 
-    fragment.append(prelude);
+        fragment.appendChild(divider);
+      }
 
-    for (const message of messages) {
-      const previewLink = document.createElement("a");
-      previewLink.className = "dropdown-item";
-      previewLink.href = "#";
-      previewLink.textContent = message.locale;
-      previewLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.previewLocalizedMessage(message);
-      });
+      const preludeMessageId = document.createElement("span");
+      preludeMessageId.className = "font-monospace";
+      preludeMessageId.textContent = groupId;
 
-      const entry = document.createElement("li");
-      entry.appendChild(previewLink);
+      if (messages.length === 1) {
+        const previewLink = this.createPreviewLink(
+          messages[0],
+          null,
+          isLocalized,
+        );
 
-      fragment.appendChild(entry);
+        previewLink.appendChild(new Text("Preview "));
+        previewLink.appendChild(preludeMessageId);
+
+        const entry = document.createElement("li");
+        entry.appendChild(previewLink);
+
+        fragment.appendChild(entry);
+      } else {
+        const prelude = document.createElement("span");
+        prelude.className = "dropdown-item-text";
+
+        prelude.appendChild(new Text("Preview "));
+        prelude.appendChild(preludeMessageId);
+        prelude.appendChild(new Text(" in locale:"));
+
+        const entry = document.createElement("li");
+        entry.appendChild(prelude);
+
+        fragment.appendChild(entry);
+
+        for (const message of messages) {
+          const previewLink = this.createPreviewLink(
+            message,
+            message.locale,
+            isLocalized,
+          );
+
+          const entry = document.createElement("li");
+          entry.appendChild(previewLink);
+
+          fragment.appendChild(entry);
+        }
+      }
     }
 
     dropdown.querySelector(".dropdown-menu").replaceChildren(fragment);
+  }
+
+  createPreviewLink(message, textContent, isLocalized) {
+    const previewLink = document.createElement("a");
+
+    previewLink.className = "dropdown-item";
+    previewLink.href = "#";
+    previewLink.textContent = textContent;
+    previewLink.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      if (isLocalized) {
+        this.previewLocalizedMessage(message);
+      } else {
+        this.tryPreviewMessage(JSON.stringify(message.content));
+      }
+    });
+
+    return previewLink;
   }
 
   async previewLocalizedMessage({ localizations, content }) {
