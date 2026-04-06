@@ -162,7 +162,7 @@ declare namespace browser.experiments.nimbus {
 
   function deleteInactiveEnrollment(slug: string): Promise<void>;
 
-  function generateTestIds(recipe: object, branchSlug: string): Promise<string>;
+  function generateTestIds(recipe: object): Promise<Record<string, string>>;
 
   function substituteLocalizations(
     values: Record<string, unknown>,

@@ -355,10 +355,9 @@ var nimbus = class extends ExtensionAPI {
             }
           },
 
-          async generateTestIds(recipe, branchSlug) {
+          async generateTestIds(recipe) {
             try {
-              const result = await ExperimentManager.generateTestIds(recipe);
-              return result[branchSlug];
+              return await ExperimentManager.generateTestIds(recipe);
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));

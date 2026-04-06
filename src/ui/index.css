@@ -126,10 +126,6 @@ pre {
   background-color: var(--colour-gray);
 }
 
-.wide-column {
-  width: 18rem;
-}
-
 .grey-border {
   border: 2px solid var(--colour-gray);
 }
