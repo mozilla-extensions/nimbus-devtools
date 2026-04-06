@@ -25,6 +25,14 @@
         "https://experimenter.services.mozilla.com/*",
         "https://stage.experimenter.nonprod.webservices.mozgcp.net/*"
       ],
+      "run_at": "document_start",
+      "js": ["contentScripts/devtools.js"]
+    },
+    {
+      "matches": [
+        "https://experimenter.services.mozilla.com/*",
+        "https://stage.experimenter.nonprod.webservices.mozgcp.net/*"
+      ],
       "js": ["contentScripts/experimenter.js"]
     }
   ],

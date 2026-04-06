@@ -16,7 +16,8 @@
       "distDir": "./dist/contentScripts",
       "publicUrl": "./",
       "source": [
-        "./src/contentScripts/experimenter.js"
+        "./src/contentScripts/experimenter.js",
+        "./src/contentScripts/devtools.js"
       ],
       "outputFormat": "esmodule"
     },
@@ -30,6 +31,11 @@
     "firefox >= 150",
     "unreleased firefox versions"
   ],
+  "@parcel/transformer-js": {
+    "inlineEnvironment": [
+      "npm_package_version"
+    ]
+  },
   "scripts": {
     "build": "npm-run-all clean build:manifest build:parcel build:package",
     "build:parcel": "parcel build --no-autoinstall",

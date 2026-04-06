@@ -63,6 +63,9 @@ export default defineConfig([
       globals: {
         ...globals.browser,
         ...globals.webextensions,
+
+        // Parcel exposes `process.env` at compile time.
+        process: true,
       },
     },
   },
