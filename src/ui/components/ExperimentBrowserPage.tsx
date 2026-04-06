@@ -399,7 +399,7 @@ async function tryEnroll(
   slug: string,
   branchSlug: string,
 ): Promise<AddToastParams> {
-  const url = new URL(slug, EXPERIMENTER_API[environment]);
+  const url = new URL(`${slug}/`, EXPERIMENTER_API[environment]);
   url.searchParams.append("bust-cache", Date.now().toString());
 
   let experiment: object;
