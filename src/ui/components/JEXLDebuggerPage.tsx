@@ -7,6 +7,7 @@ import {
   useMemo,
 } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import { useLocation } from "react-router-dom";
 
 import { useToastsContext } from "../hooks/useToasts";
 import { evaluateJexl } from "../jexlParser";
@@ -120,6 +121,10 @@ function ContextField<TValue extends FormDataValue>({
   }
 }
 
+type JEXLDebuggerPageState = {
+  jexlExpression?: string;
+};
+
 const JEXLDebuggerPage: FC = () => {
   const [originalContext, setOriginalContext] = useState<
     Record<string, ContextValue>
@@ -128,7 +133,12 @@ const JEXLDebuggerPage: FC = () => {
     Record<string, ContextValue>
   >({});
   const [formData, setFormData] = useState<Record<string, FormDataValue>>({});
-  const [jexlExpression, setJexlExpression] = useState("");
+  const { state: locationState } = useLocation() as {
+    state: JEXLDebuggerPageState | null;
+  };
+  const [jexlExpression, setJexlExpression] = useState(
+    locationState?.jexlExpression ?? "",
+  );
   const [output, setOutput] = useState("");
   const { addToast } = useToastsContext();
 

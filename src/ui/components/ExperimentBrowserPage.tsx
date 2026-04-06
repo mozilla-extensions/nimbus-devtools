@@ -17,6 +17,7 @@ import {
   Dropdown,
   Modal,
 } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 import { AddToastParams, useToastsContext } from "../hooks/useToasts";
 
@@ -222,7 +223,13 @@ const ExperimentRow: FC<{
   experiment: NimbusExperiment;
   openForceEnrollDialog: (e: NimbusExperiment) => void;
   openGenerateTestIdsDialog: (e: NimbusExperiment) => void;
-}> = ({ experiment, openForceEnrollDialog, openGenerateTestIdsDialog }) => {
+  debugTargeting: (slug: string) => void;
+}> = ({
+  experiment,
+  openForceEnrollDialog,
+  openGenerateTestIdsDialog,
+  debugTargeting,
+}) => {
   const handleForceEnrollClicked = useCallback(
     () => openForceEnrollDialog(experiment),
     [openForceEnrollDialog, experiment],
@@ -230,6 +237,10 @@ const ExperimentRow: FC<{
   const handleGenerateTestIdsClicked = useCallback(
     () => openGenerateTestIdsDialog(experiment),
     [openGenerateTestIdsDialog, experiment],
+  );
+  const handleDebugTargetingClicked = useCallback(
+    () => debugTargeting(experiment.slug),
+    [debugTargeting, experiment],
   );
 
   return (
@@ -252,6 +263,9 @@ const ExperimentRow: FC<{
             <Dropdown.Item onClick={handleGenerateTestIdsClicked}>
               Generate Test IDs...
             </Dropdown.Item>
+            <Dropdown.Item onClick={handleDebugTargetingClicked}>
+              Debug Targeting
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </td>
@@ -260,10 +274,12 @@ const ExperimentRow: FC<{
 };
 
 const ExperimentBrowserPage: FC = () => {
+  const { addToast } = useToastsContext();
+  const navigate = useNavigate();
+
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
   const [experiments, setExperiments] = useState<NimbusExperiment[]>([]);
-  const { addToast } = useToastsContext();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -309,6 +325,23 @@ const ExperimentBrowserPage: FC = () => {
   );
   const closeDialog = useCallback(() => setDialogState(null), []);
 
+  const debugTargeting = useCallback(
+    (experimentSlug: string) => {
+      fetchExperiment(environment, experimentSlug).then(
+        (experiment) =>
+          navigate("/jexl-debugger", {
+            state: { jexlExpression: experiment.targeting },
+          }),
+        (error) =>
+          addToast({
+            message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          }),
+      );
+    },
+    [environment, navigate, addToast],
+  );
+
   const experimentRows = useMemo(
     () =>
       experiments.map((experiment) => (
@@ -317,9 +350,15 @@ const ExperimentBrowserPage: FC = () => {
           experiment={experiment}
           openForceEnrollDialog={openForceEnrollmentDialog}
           openGenerateTestIdsDialog={openGenerateTestIdsDialog}
+          debugTargeting={debugTargeting}
         />
       )),
-    [experiments, openGenerateTestIdsDialog, openForceEnrollmentDialog],
+    [
+      experiments,
+      openGenerateTestIdsDialog,
+      openForceEnrollmentDialog,
+      debugTargeting,
+    ],
   );
 
   return (
@@ -394,17 +433,24 @@ const ExperimentBrowserPage: FC = () => {
   );
 };
 
+async function fetchExperiment(
+  environment: Environment,
+  slug: string,
+): Promise<NimbusExperiment> {
+  const url = new URL(`${slug}/`, EXPERIMENTER_API[environment]);
+  url.searchParams.append("bust-cache", Date.now().toString());
+
+  return fetch(url).then((rsp) => rsp.json()) as Promise<NimbusExperiment>;
+}
+
 async function tryEnroll(
   environment: Environment,
   slug: string,
   branchSlug: string,
 ): Promise<AddToastParams> {
-  const url = new URL(`${slug}/`, EXPERIMENTER_API[environment]);
-  url.searchParams.append("bust-cache", Date.now().toString());
-
-  let experiment: object;
+  let experiment: NimbusExperiment;
   try {
-    experiment = await fetch(url).then((rsp) => rsp.json() as object);
+    experiment = await fetchExperiment(environment, slug);
   } catch (error) {
     return {
       message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
