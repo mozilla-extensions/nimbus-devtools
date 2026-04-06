@@ -335,9 +335,9 @@ var nimbus = class extends ExtensionAPI {
             }
           },
 
-          async unenroll(slug) {
+          unenroll(slug) {
             try {
-              return await ExperimentManager.unenroll(slug, {
+              return ExperimentManager.unenroll(slug, {
                 reason: "nimbus-devtools",
               });
             } catch (error) {
