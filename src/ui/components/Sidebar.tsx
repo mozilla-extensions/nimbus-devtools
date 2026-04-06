@@ -16,7 +16,7 @@ const links = [
 
 const Sidebar: FC = () => {
   return (
-    <Nav className="sidebar d-block rounded position-fixed m-2 light-bg">
+    <Nav className="sidebar d-flex flex-column rounded position-fixed m-2 light-bg">
       {links.map((link, index) => (
         <NavLink
           key={index}
@@ -28,6 +28,14 @@ const Sidebar: FC = () => {
           {link.text}
         </NavLink>
       ))}
+      <a
+        className="sidebar__link mt-auto p-4 d-block secondary-fg text-decoration-none"
+        href="https://github.com/mozilla-extensions/nimbus-devtools/issues/new"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Report a Bug
+      </a>
     </Nav>
   );
 };
