@@ -113,7 +113,7 @@ type MessagingFeaturesAndTemplates = {
 declare namespace browser.experiments.messagingSystem {
   function getMessagingFeaturesAndTemplates(): Promise<null | MessagingFeaturesAndTemplates>;
 
-  function previewMessage(string): Promise<void>;
+  function previewMessage(messageContent: string): Promise<void>;
 }
 
 type EnrollInExperimentResult =
