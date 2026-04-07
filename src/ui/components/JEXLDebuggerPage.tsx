@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
@@ -126,6 +127,7 @@ type JEXLDebuggerPageState = {
 };
 
 const JEXLDebuggerPage: FC = () => {
+  const mounted = useRef<boolean>(false);
   const [originalContext, setOriginalContext] = useState<
     Record<string, ContextValue>
   >({});
@@ -201,24 +203,20 @@ const JEXLDebuggerPage: FC = () => {
     [],
   );
 
-  const handleEvaluateClick = useCallback(async () => {
-    try {
-      if (jexlExpression === "") {
-        setOutput("Error evaluating expression");
-      } else {
-        const result = await evaluateJexl(jexlExpression, {
-          ...originalContext,
-          ...modifiedContext,
+  const evaluateExpression = useCallback(() => {
+    evaluateJexl(jexlExpression, {
+      ...originalContext,
+      ...modifiedContext,
+    }).then(
+      (result) => setOutput(result),
+      (error) => {
+        setOutput("Evaluation error");
+        addToast({
+          message: `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
         });
-        setOutput(result);
-      }
-    } catch (error) {
-      setOutput("Error evaluating expression");
-      addToast({
-        message: `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
-        variant: "danger",
-      });
-    }
+      },
+    );
   }, [jexlExpression, modifiedContext, originalContext, addToast]);
 
   const parseAndSetContext = useMemo(() => {
@@ -293,6 +291,14 @@ const JEXLDebuggerPage: FC = () => {
     [parseAndSetContext],
   );
 
+  useEffect(() => {
+    if (!mounted.current && locationState?.jexlExpression) {
+      evaluateExpression();
+    }
+
+    mounted.current = true;
+  }, [locationState?.jexlExpression, evaluateExpression]);
+
   return (
     <Container className="main-content">
       <Row className="justify-content-start pb-2 px-2 pt-3">
@@ -307,7 +313,7 @@ const JEXLDebuggerPage: FC = () => {
             rows={8}
           />
           <Button
-            onClick={handleEvaluateClick}
+            onClick={evaluateExpression}
             className="mt-2 py-2 px-4 fs-6 border-0 w-100 rounded text-white dark-button"
           >
             Evaluate

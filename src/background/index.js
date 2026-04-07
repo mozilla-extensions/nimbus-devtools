@@ -6,9 +6,7 @@
 import { MessageKind } from "./messages";
 
 browser.browserAction.onClicked.addListener(() =>
-  browser.tabs.create({
-    url: "./ui/index.html",
-  }),
+  browser.tabs.create({ url: "./ui/index.html" }),
 );
 
 browser.runtime.onMessage.addListener(
@@ -23,6 +21,10 @@ browser.runtime.onMessage.addListener(
     }
 
     switch (message.kind) {
+      case MessageKind.DEBUG_JEXL:
+        openJexlDebugger(message.jexlExpression);
+        break;
+
       case MessageKind.FORCE_ENROLL:
         browser.experiments.nimbus
           .forceEnroll(message.recipe, message.branchSlug)
@@ -45,7 +47,6 @@ browser.runtime.onMessage.addListener(
         break;
 
       case MessageKind.SUBSTITUTE_LOCALIZATIONS:
-        console.log(message.values, message.localizations);
         browser.experiments.nimbus
           .substituteLocalizations(message.values, message.localizations)
           .then(
@@ -63,3 +64,12 @@ browser.runtime.onMessage.addListener(
     return undefined;
   },
 );
+
+function openJexlDebugger(jexlExpression) {
+  const searchParams = new URLSearchParams();
+
+  searchParams.append("view", "jexl-debugger");
+  searchParams.append("jexlExpression", jexlExpression);
+
+  browser.tabs.create({ url: `./ui/index.html?${searchParams}` });
+}

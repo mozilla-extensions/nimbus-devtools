@@ -6,6 +6,13 @@
 import { MessageKind } from "../../background/messages";
 
 export default {
+  async debugJexl(jexlExpression) {
+    return browser.runtime.sendMessage({
+      kind: MessageKind.DEBUG_JEXL,
+      jexlExpression,
+    });
+  },
+
   async getMessagingFeaturesAndTemplates() {
     return browser.runtime.sendMessage({
       kind: MessageKind.GET_MESSAGING_FEATURES_AND_TEMPLATES,
@@ -28,7 +35,6 @@ export default {
   },
 
   async substituteLocalizations(values, localizations) {
-    console.log(values, localizations);
     const result = await browser.runtime.sendMessage({
       kind: MessageKind.SUBSTITUTE_LOCALIZATIONS,
       values,

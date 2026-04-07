@@ -141,6 +141,24 @@ class ExperimenterIntegration {
             });
         }
       });
+
+    document
+      .querySelectorAll("textarea[data-nimbus-devtools-targeting-expression]")
+      .forEach((textarea) => {
+        const container = textarea.closest(".readonly-json-collapsible");
+        if (!container) {
+          return;
+        }
+
+        container
+          .querySelectorAll("[data-nimbus-devtools-debug-jexl-button]")
+          .forEach((button) => {
+            button.addEventListener("click", () =>
+              NimbusDevtoolsAPI.debugJexl(textarea.value),
+            );
+            button.classList.remove("d-none");
+          });
+      });
   }
 
   /**

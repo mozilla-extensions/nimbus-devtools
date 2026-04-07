@@ -10,6 +10,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useSearchParams,
 } from "react-router-dom";
 import { Container } from "react-bootstrap";
 
@@ -24,6 +25,22 @@ import ExperimentStorePage from "./components/ExperimentStorePage";
 import useToasts from "./hooks/useToasts";
 import Toasts from "./components/Toasts";
 
+const IndexRoute = () => {
+  const [searchParams] = useSearchParams(document.location.search);
+
+  if (searchParams.get("view") === "jexl-debugger") {
+    const jexlExpression = searchParams.get("jexlExpression");
+
+    if (jexlExpression) {
+      return (
+        <Navigate to="/jexl-debugger" state={{ jexlExpression }} replace />
+      );
+    }
+  }
+
+  return <Navigate to="/experiment-json" replace />;
+};
+
 const App = () => {
   const toastCtx = useToasts();
 
@@ -35,10 +52,7 @@ const App = () => {
           <Sidebar />
           <Container className="main-content">
             <Routes>
-              <Route
-                path="/"
-                element={<Navigate to="/experiment-json" replace />}
-              />
+              <Route path="/" element={<IndexRoute />} />
               <Route
                 path="/experiment-json"
                 element={<RecipeEnrollmentPage />}

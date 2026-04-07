@@ -29,6 +29,10 @@ export async function evaluateJexl(
   expression: string,
   context: object = {},
 ): Promise<string> {
+  if (!expression.trim()) {
+    throw new Error("Empty expression");
+  }
+
   const lexer = new Lexer(grammar);
   const parser = new Parser(grammar);
 
