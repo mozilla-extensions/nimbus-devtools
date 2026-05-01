@@ -312,12 +312,9 @@ var nimbus = class extends ExtensionAPI {
 
           async forceEnroll(recipe, branchSlug) {
             try {
-              const branch = recipe?.branches?.find(
-                (br) => br.slug === branchSlug,
-              );
               const result = await ExperimentManager.forceEnroll(
                 recipe,
-                branch,
+                branchSlug,
               );
               return result !== null;
             } catch (error) {
