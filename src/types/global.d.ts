@@ -125,7 +125,7 @@ type EnrollInExperimentResult =
       enrolled: false;
       error: {
         slugExistsInStore: boolean;
-        activeEnrollment: string | null;
+        activeEnrollments?: string[];
       };
     };
 

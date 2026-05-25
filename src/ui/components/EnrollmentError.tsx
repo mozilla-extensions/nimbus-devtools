@@ -7,51 +7,36 @@ const EnrollmentError: FC<{
   if (!enrollError) {
     return null;
   }
-  const { activeEnrollment, slugExistsInStore } = enrollError;
+  const { activeEnrollments, slugExistsInStore } = enrollError;
 
-  if (activeEnrollment && slugExistsInStore && slug == activeEnrollment) {
-    return (
-      <p>
-        There is already an enrollment for the slug: <strong>{slug}</strong>.
-        Would you like to proceed with force enrollment by unenrolling,
-        deleting, and enrolling into the new configuration?
-      </p>
-    );
-  } else if (
-    activeEnrollment &&
-    slugExistsInStore &&
-    slug !== activeEnrollment
-  ) {
-    return (
-      <p>
-        There is already an active enrollment for the feature with a different
-        slug. Would you like to proceed with force enrollment by unenrolling,
-        deleting, and enrolling into the new configuration?
-      </p>
-    );
-  }
+  return (
+    <>
+      {activeEnrollments && (
+        <>
+          <p>
+            There are one or more active enrollments that are in conflict with
+            this new enrollment. Force enrolling will unenroll from these
+            enrollments:
+          </p>
+          <ul>
+            {activeEnrollments.map((slug) => (
+              <li key={slug}>
+                <code>{slug}</code>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
-  if (activeEnrollment) {
-    return (
-      <p>
-        There is an active enrollment for the slug:{" "}
-        <strong>{activeEnrollment}</strong>. Would you like to unenroll from the
-        active enrollment and enroll into the new configuration?
-      </p>
-    );
-  }
-
-  if (slugExistsInStore) {
-    return (
-      <p>
-        There is an inactive enrollment stored for the slug:{" "}
-        <strong>{slug}</strong>. Would you like to delete the inactive
-        enrollment and enroll into the new configuration?
-      </p>
-    );
-  }
-
-  return null;
+      {slugExistsInStore && (
+        <p>
+          An enrollment with the slug <code>{slug}</code> already exists in the
+          enrollment store. Force enrolling will <strong>delete</strong> this
+          enrollment from the store.
+        </p>
+      )}
+    </>
+  );
 };
 
 export default EnrollmentError;

@@ -61,43 +61,71 @@ var nimbus = class extends ExtensionAPI {
     return {
       experiments: {
         nimbus: {
-          async enrollInExperiment(jsonData, forceEnroll) {
+          async enrollInExperiment(recipe, forceEnroll) {
             try {
-              const { slug, isRollout = false } = jsonData;
+              const { slug } = recipe;
 
               const slugExistsInStore = ExperimentManager.store
                 .getAll()
                 .some((experiment) => experiment.slug === slug);
-              const activeEnrollment =
-                ExperimentManager.store
-                  .getAll()
-                  .find(
-                    (experiment) =>
-                      experiment.slug === slug &&
-                      experiment.isRollout === isRollout &&
-                      experiment.active,
-                  )?.slug ?? null;
-              if (slugExistsInStore || activeEnrollment) {
-                if (!forceEnroll) {
-                  return {
-                    enrolled: false,
-                    error: { slugExistsInStore, activeEnrollment },
-                  };
-                }
 
-                if (activeEnrollment) {
-                  this.unenroll(activeEnrollment);
-                }
-                if (slugExistsInStore) {
-                  this.deleteInactiveEnrollment(jsonData.slug);
+              const canEnroll = ExperimentManager.canEnroll(recipe);
+              if (!canEnroll.ok) {
+                switch (canEnroll.reason) {
+                  case "enrollment-paused":
+                    // Allow enrollment in paused recipes.
+                    break;
+
+                  case "does-not-exist":
+                    throw new Error(
+                      `Feature ${canEnroll.featureId} does not exist`,
+                    );
+
+                  case "enrolled-in-feature":
+                    if (!forceEnroll) {
+                      return {
+                        enrolled: false,
+                        error: {
+                          activeEnrollments: Array.from(
+                            canEnroll.conflictingEnrollments,
+                          ),
+                          slugExistsInStore,
+                        },
+                      };
+                    }
+
+                    for (const conflictingSlug of canEnroll.conflictingEnrollments) {
+                      this.unenroll(conflictingSlug);
+                    }
+                    break;
+
+                  default:
+                    console.error(
+                      `Cannot enroll: unexpected reason ${canEnroll.reason}`,
+                      canEnroll,
+                    );
+                    throw new Error(
+                      `Cannot enroll: unexpected reason ${canEnroll.reason}`,
+                    );
                 }
               }
 
-              const result = await ExperimentManager.enroll(
-                jsonData,
+              if (slugExistsInStore) {
+                if (!forceEnroll) {
+                  return {
+                    enrolled: false,
+                    error: { slugExistsInStore },
+                  };
+                }
+
+                this.deleteInactiveEnrollment(recipe.slug);
+              }
+
+              const enrollment = await ExperimentManager.enroll(
+                recipe,
                 "nimbus-devtools",
               );
-              return { enrolled: result !== null, error: null };
+              return { enrolled: enrollment !== null, error: null };
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -110,13 +138,7 @@ var nimbus = class extends ExtensionAPI {
             isRollout,
             forceEnroll,
           ) {
-            let userFacingName = `Nimbus Devtools ${featureId} Enrollment`;
-
-            if (isRollout) {
-              userFacingName += " (rollout)";
-            }
-
-            const slug = `nimbus-devtools-${featureId}-${isRollout ? "rollout" : "experiment"}`;
+            const uuid = Services.uuid.generateUUID().toString().slice(1, -1);
             const recipe = {
               bucketConfig: {
                 namespace: "devtools-test",
@@ -139,49 +161,12 @@ var nimbus = class extends ExtensionAPI {
               ],
               isRollout,
               featureIds: [featureId],
-              slug,
-              userFacingName,
+              slug: `nimbus-devtools-${featureId}-${isRollout ? "rollout" : "experiment"}-${uuid}`,
+              userFacingName: `nimbus-devtools ${featureId} ${isRollout ? "Rollout" : "Experiment"} (${uuid})`,
               userFacingDescription: `Testing the feature with feature ID: ${featureId}.`,
             };
 
-            try {
-              const slugExistsInStore = ExperimentManager.store
-                .getAll()
-                .some((experiment) => experiment.slug === recipe.slug);
-              const activeEnrollment =
-                ExperimentManager.store
-                  .getAll()
-                  .find(
-                    (experiment) =>
-                      experiment.featureIds.includes(featureId) &&
-                      experiment.isRollout === isRollout &&
-                      experiment.active,
-                  )?.slug ?? null;
-
-              if (slugExistsInStore || activeEnrollment) {
-                if (!forceEnroll) {
-                  return {
-                    enrolled: false,
-                    error: { slugExistsInStore, activeEnrollment },
-                  };
-                }
-
-                if (activeEnrollment) {
-                  this.unenroll(activeEnrollment);
-                }
-                if (slugExistsInStore) {
-                  this.deleteInactiveEnrollment(slug);
-                }
-              }
-              const result = await ExperimentManager.enroll(
-                recipe,
-                "nimbus-devtools",
-              );
-              return { enrolled: result !== null, error: null };
-            } catch (error) {
-              console.error(error);
-              throw new ExtensionError(String(error));
-            }
+            return this.enrollInExperiment(recipe, forceEnroll);
           },
 
           async getFeatureConfigs() {

@@ -100,7 +100,12 @@ const RecipeEnrollmentPage: FC = () => {
           <Modal.Title>Force Enrollment</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <EnrollmentError slug={enrollError?.slug} enrollError={enrollError} />
+          {enrollError && (
+            <EnrollmentError
+              slug={enrollError.slug}
+              enrollError={enrollError}
+            />
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>

@@ -79,7 +79,7 @@ const FeatureConfigPage: FC = () => {
 
   const handleModalConfirm = useCallback(async () => {
     setEnrollError(null);
-    await handleEnrollClick(null, true);
+    await handleEnrollClick(undefined, true);
   }, [handleEnrollClick]);
 
   const handleModalClose = useCallback(() => {
