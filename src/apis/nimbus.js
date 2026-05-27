@@ -133,10 +133,19 @@ var nimbus = class extends ExtensionAPI {
                 this.deleteInactiveEnrollment(recipe.slug);
               }
 
+              // If an existing opt-in exists with the slug, we must unregister
+              // it. Otherwise, we may have two different recipes with the same
+              // slug .
+              ExperimentManager.unregisterOptIn(recipe.slug);
               const enrollment = await ExperimentManager.enroll(
                 recipe,
                 "nimbus-devtools",
               );
+
+              if (enrollment && recipe.isFirefoxLabsOptIn) {
+                ExperimentManager.registerOptIn(recipe, "nimbus-devtools");
+              }
+
               return { enrolled: enrollment !== null, error: null };
             } catch (error) {
               console.error(error);

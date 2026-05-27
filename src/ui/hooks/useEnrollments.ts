@@ -24,7 +24,18 @@ export type NimbusEnrollment = {
       active: false;
       unenrollReason: string;
     }
-);
+) &
+  (
+    | { isFirefoxLabsOptIn: false | undefined }
+    | {
+        isFirefoxLabsOptIn: true;
+        firefoxLabsTitle: string;
+        firefoxLabsDescription: string;
+        firefoxLabsDescriptionLinks: Record<string, string> | null;
+        firefoxLabsGroup: string;
+        requiresRestart: boolean;
+      }
+  );
 
 export type UseEnrollments = {
   enrollments: NimbusEnrollment[] | null;
