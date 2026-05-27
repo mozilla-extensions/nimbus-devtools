@@ -2,8 +2,8 @@ import { ChangeEvent, FC, useState, useCallback, useMemo } from "react";
 import { Form, Container, Button, Row, Col, Modal } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
-import DropdownMenu from "./DropdownMenu";
 import EnrollmentError from "./EnrollmentError";
+import FeatureConfigSelector from "./FeatureConfigSelector";
 
 const FeatureConfigPage: FC = () => {
   const [jsonInput, setJsonInput] = useState("");
@@ -91,7 +91,9 @@ const FeatureConfigPage: FC = () => {
       <Form>
         <Row className="align-items-stretch">
           <Col md={9}>
-            <DropdownMenu onSelectFeatureConfigId={handleFeatureSelect} />
+            <FeatureConfigSelector
+              onSelectFeatureConfigId={handleFeatureSelect}
+            />
           </Col>
           <Col md={3} className="ps-0">
             <Container className="checkbox-border d-flex rounded p-2 grey-border">

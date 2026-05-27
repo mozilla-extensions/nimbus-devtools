@@ -3,12 +3,14 @@ import { Form } from "react-bootstrap";
 
 import { useToastsContext } from "../hooks/useToasts";
 
-type DropdownMenuProps = {
+type FeatureConfigSelectorProps = {
   onSelectFeatureConfigId: (featureId: string) => void;
 };
 
-const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
-  const [featureConfigs, setFeatureConfigs] = useState([]);
+const FeatureConfigSelector: FC<FeatureConfigSelectorProps> = ({
+  onSelectFeatureConfigId,
+}) => {
+  const [featureConfigs, setFeatureConfigs] = useState<string[]>([]);
   const { addToast } = useToastsContext();
 
   useEffect(() => {
@@ -51,4 +53,4 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ onSelectFeatureConfigId }) => {
   );
 };
 
-export default DropdownMenu;
+export default FeatureConfigSelector;
