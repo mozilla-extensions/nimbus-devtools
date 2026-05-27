@@ -1,73 +1,10 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC } from "react";
 import { Table, Button, Container } from "react-bootstrap";
 
-import { useToastsContext } from "../hooks/useToasts";
-
-type NimbusEnrollment = {
-  slug: string;
-  userFacingName: string;
-  userFacingDescription: string;
-  isRollout: boolean;
-  featureIds: string[];
-  active: boolean;
-};
+import useEnrollments, { NimbusEnrollment } from "../hooks/useEnrollments";
 
 const ExperimentStorePage: FC = () => {
-  const [experiments, setExperiments] = useState<NimbusEnrollment[]>([]);
-  const { addToast } = useToastsContext();
-
-  const fetchExperiments = useCallback(async () => {
-    try {
-      const experimentStore =
-        await browser.experiments.nimbus.getExperimentStore();
-      setExperiments(experimentStore as NimbusEnrollment[]);
-    } catch (error) {
-      addToast({
-        message: `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
-        variant: "danger",
-      });
-    }
-  }, [addToast]);
-
-  useEffect(() => {
-    // This will raise a false positive about calling setState in effect, even
-    // though the setState happens *after* an await statement.
-    // See-also: https://github.com/facebook/react/issues/34905
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchExperiments();
-  }, [fetchExperiments]);
-
-  const unenrollExperiment = useCallback(
-    async (slug: string) => {
-      try {
-        await browser.experiments.nimbus.unenroll(slug);
-        addToast({ message: "Unenrollment successful", variant: "success" });
-        await fetchExperiments();
-      } catch (error) {
-        addToast({
-          message: `Error unenrolling from experiment: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    },
-    [fetchExperiments, addToast],
-  );
-
-  const deleteExperiment = useCallback(
-    async (slug: string) => {
-      try {
-        await browser.experiments.nimbus.deleteInactiveEnrollment(slug);
-        addToast({ message: "Deletion successful", variant: "success" });
-        await fetchExperiments();
-      } catch (error) {
-        addToast({
-          message: `Error deleting experiment: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    },
-    [fetchExperiments, addToast],
-  );
+  const { enrollments, unenroll, deleteEnrollment } = useEnrollments();
 
   return (
     <Container>
@@ -83,7 +20,7 @@ const ExperimentStorePage: FC = () => {
           </tr>
         </thead>
         <tbody>
-          {experiments?.map((experiment: NimbusEnrollment, index: number) => (
+          {enrollments?.map((experiment: NimbusEnrollment, index: number) => (
             <tr key={index}>
               <td className="align-middle ps-0 py-3">
                 <strong>{experiment.slug}</strong> <br /> <br />
@@ -101,14 +38,14 @@ const ExperimentStorePage: FC = () => {
               <td className="text-center align-middle px-4">
                 {experiment.active ? (
                   <Button
-                    onClick={() => unenrollExperiment(experiment.slug)}
+                    onClick={() => unenroll(experiment.slug)}
                     className="option-button primary-fg px-2 py-1 rounded grey-border light-bg"
                   >
                     Unenroll
                   </Button>
                 ) : (
                   <Button
-                    onClick={() => deleteExperiment(experiment.slug)}
+                    onClick={() => deleteEnrollment(experiment.slug)}
                     className="option-button primary-fg px-2 py-1 rounded grey-border light-bg"
                   >
                     Delete

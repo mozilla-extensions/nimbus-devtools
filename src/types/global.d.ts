@@ -129,6 +129,8 @@ type EnrollInExperimentResult =
       };
     };
 
+type NimbusEnrollment = import("../ui/hooks/useEnrollments").NimbusEnrollment;
+
 declare namespace browser.experiments.nimbus {
   function enrollInExperiment(
     jsonData: object,
@@ -156,7 +158,7 @@ declare namespace browser.experiments.nimbus {
 
   function forceEnroll(recipe: object, branchSlug: string): Promise<boolean>;
 
-  function getExperimentStore(): Promise<object[]>;
+  function getExperimentStore(): Promise<NimbusEnrollment[]>;
 
   function unenroll(slug: string): Promise<void>;
 
