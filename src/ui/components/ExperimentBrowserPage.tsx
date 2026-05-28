@@ -20,7 +20,8 @@ import {
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-import { AddToastParams, useToastsContext } from "../hooks/useToasts";
+import useEnrollments from "../hooks/useEnrollments";
+import { useToastsContext } from "../hooks/useToasts";
 
 type Status = "Live" | "Preview" | "Complete";
 type DialogState =
@@ -50,12 +51,16 @@ type DialogProps = {
   experiment: DesktopNimbusExperiment;
 };
 
-type ForceEnrollmentDialogProps = DialogProps & { environment: Environment };
+type ForceEnrollmentDialogProps = DialogProps & {
+  environment: Environment;
+  forceEnroll: (recipe: object, branchSlug: string) => Promise<boolean>;
+};
 
 const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
   environment,
   closeDialog,
   experiment,
+  forceEnroll,
 }) => {
   const { addToast } = useToastsContext();
 
@@ -81,15 +86,29 @@ const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
 
   const handleEnroll = useCallback(async () => {
     if (selectedBranch) {
-      const toast = await tryEnroll(
-        environment,
-        experiment.slug,
-        selectedBranch,
-      );
-      addToast(toast);
-      closeDialog();
+      let recipe: DesktopNimbusExperiment;
+      try {
+        recipe = await fetchExperiment(environment, experiment.slug);
+      } catch (error) {
+        addToast({
+          message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
+        return;
+      }
+
+      if (await forceEnroll(recipe, selectedBranch)) {
+        closeDialog();
+      }
     }
-  }, [environment, experiment, selectedBranch, addToast, closeDialog]);
+  }, [
+    environment,
+    experiment,
+    selectedBranch,
+    addToast,
+    forceEnroll,
+    closeDialog,
+  ]);
 
   return (
     <>
@@ -220,11 +239,13 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
 
 const ExperimentRow: FC<{
   experiment: DesktopNimbusExperiment;
+  enrollment: NimbusEnrollment | null;
   openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
   openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
   debugTargeting: (slug: string) => void;
 }> = ({
   experiment,
+  enrollment,
   openForceEnrollDialog,
   openGenerateTestIdsDialog,
   debugTargeting,
@@ -256,9 +277,11 @@ const ExperimentRow: FC<{
         <Dropdown>
           <Dropdown.Toggle>Actions</Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={handleForceEnrollClicked}>
-              Force Enroll...
-            </Dropdown.Item>
+            {!enrollment && (
+              <Dropdown.Item onClick={handleForceEnrollClicked}>
+                Force Enroll...
+              </Dropdown.Item>
+            )}
             <Dropdown.Item onClick={handleGenerateTestIdsClicked}>
               Generate Test IDs...
             </Dropdown.Item>
@@ -281,6 +304,7 @@ const ExperimentBrowserPage: FC = () => {
   const [experiments, setExperiments] = useState<
     DesktopNimbusExperiment[] | null
   >(null);
+  const { enrollments, forceEnroll } = useEnrollments();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -354,10 +378,16 @@ const ExperimentBrowserPage: FC = () => {
           openForceEnrollDialog={openForceEnrollmentDialog}
           openGenerateTestIdsDialog={openGenerateTestIdsDialog}
           debugTargeting={debugTargeting}
+          enrollment={
+            enrollments?.find(
+              (enrollment) => enrollment.slug === experiment.slug,
+            ) ?? null
+          }
         />
       )),
     [
       experiments,
+      enrollments,
       openGenerateTestIdsDialog,
       openForceEnrollmentDialog,
       debugTargeting,
@@ -439,6 +469,7 @@ const ExperimentBrowserPage: FC = () => {
             closeDialog={closeDialog}
             environment={environment}
             experiment={dialogState.experiment}
+            forceEnroll={forceEnroll}
           />
         )}
         {dialogState?.kind === "generate-test-ids" && (
@@ -462,39 +493,6 @@ async function fetchExperiment(
   return fetch(url).then((rsp) =>
     rsp.json(),
   ) as Promise<DesktopNimbusExperiment>;
-}
-
-async function tryEnroll(
-  environment: Environment,
-  slug: string,
-  branchSlug: string,
-): Promise<AddToastParams> {
-  let experiment: DesktopNimbusExperiment;
-  try {
-    experiment = await fetchExperiment(environment, slug);
-  } catch (error) {
-    return {
-      message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
-      variant: "danger",
-    };
-  }
-
-  try {
-    const enrolled = await browser.experiments.nimbus.forceEnroll(
-      experiment,
-      branchSlug,
-    );
-    if (enrolled) {
-      return { message: "Enrollment successful", variant: "success" };
-    } else {
-      return { message: "Enrollment failed", variant: "danger" };
-    }
-  } catch (error) {
-    return {
-      message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
-      variant: "danger",
-    };
-  }
 }
 
 export default ExperimentBrowserPage;

@@ -18,6 +18,7 @@ export type NimbusEnrollment = {
 
 export type UseEnrollments = {
   enrollments: NimbusEnrollment[] | null;
+  forceEnroll: (recipe: object, branchSlug: string) => Promise<boolean>;
   loadEnrollments: () => Promise<void>;
   unenroll: (slug: string) => Promise<void>;
   deleteEnrollment: (slug: string) => Promise<void>;
@@ -40,6 +41,34 @@ export default function useEnrollments(): UseEnrollments {
           }),
       ),
     [addToast],
+  );
+
+  const forceEnroll = useCallback(
+    async (recipe: object, branchSlug: string) => {
+      try {
+        const enrolled = await browser.experiments.nimbus.forceEnroll(
+          recipe,
+          branchSlug,
+        );
+
+        if (enrolled) {
+          addToast({ message: "Enrollment successful", variant: "success" });
+          await loadEnrollments();
+        } else {
+          addToast({ message: "Enrollment failed", variant: "danger" });
+        }
+
+        return enrolled;
+      } catch (error) {
+        addToast({
+          message: `Error enrolling into experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
+      }
+
+      return false;
+    },
+    [addToast, loadEnrollments],
   );
 
   const unenroll = useCallback(
@@ -84,6 +113,7 @@ export default function useEnrollments(): UseEnrollments {
 
   return {
     enrollments,
+    forceEnroll,
     loadEnrollments,
     unenroll,
     deleteEnrollment,
