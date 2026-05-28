@@ -154,6 +154,12 @@ declare namespace browser.experiments.nimbus {
 
   function getClientContext(): Promise<object>;
 
+  function injectInactiveEnrollment(
+    recipe: object,
+    branchSlug: string,
+    reason: string,
+  ): Promise<void>;
+
   function updateRecipes(forceSync: boolean): Promise<void>;
 
   function forceEnroll(recipe: object, branchSlug: string): Promise<boolean>;

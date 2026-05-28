@@ -68,6 +68,32 @@
         "async": true,
         "parameters": []
       },
+
+      {
+        "name": "injectInactiveEnrollment",
+        "type": "function",
+        "description": "Inject a past (inactive) enrollment.",
+        "async": true,
+        "parameters": [
+          {
+            "name": "recipe",
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The recipe to create a past ennrollment for."
+          },
+          {
+            "name": "branchSlug",
+            "type": "string",
+            "description": "The slug that was enrolled."
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "description": "The reason for unenrollment."
+          }
+        ]
+      },
+
       {
         "name": "setCollection",
         "type": "function",

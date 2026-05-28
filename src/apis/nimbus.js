@@ -190,6 +190,29 @@ var nimbus = class extends ExtensionAPI {
             }
           },
 
+          async injectInactiveEnrollment(recipe, branchSlug, reason) {
+            try {
+              const existingEnrollment = ExperimentManager.store
+                .getAll()
+                .find((experiment) => experiment.slug === recipe.slug);
+
+              if (existingEnrollment) {
+                throw new Error("Enrollment already exists");
+              }
+
+              const { enrollment } = ExperimentManager.createEnrollment(
+                recipe,
+                branchSlug,
+                "rs-loader",
+                { active: false, reason },
+              );
+              ExperimentManager.store.addEnrollment(enrollment, recipe);
+            } catch (error) {
+              console.error(error);
+              throw new ExtensionError(String(error));
+            }
+          },
+
           async setCollection(collectionId) {
             try {
               Services.prefs.setStringPref(

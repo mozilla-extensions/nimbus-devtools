@@ -28,7 +28,7 @@
     }
   },
   "browserslist": [
-    "firefox >= 152",
+    "firefox >= 153",
     "unreleased firefox versions"
   ],
   "@parcel/transformer-js": {

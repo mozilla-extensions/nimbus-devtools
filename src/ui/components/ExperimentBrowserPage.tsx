@@ -32,6 +32,10 @@ type DialogState =
   | {
       kind: "generate-test-ids";
       experiment: DesktopNimbusExperiment;
+    }
+  | {
+      kind: "inject-inactive-enrollment";
+      experiment: DesktopNimbusExperiment;
     };
 
 enum Environment {
@@ -54,6 +58,14 @@ type DialogProps = {
 type ForceEnrollmentDialogProps = DialogProps & {
   environment: Environment;
   forceEnroll: (recipe: object, branchSlug: string) => Promise<boolean>;
+};
+
+type InjectInactiveEnrollmentDialogProps = DialogProps & {
+  injectInactiveEnrollment: (
+    experiment: DesktopNimbusExperiment,
+    branchSlug: string,
+    reason: string,
+  ) => Promise<void>;
 };
 
 const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
@@ -237,12 +249,129 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
   );
 };
 
+const InjectInactiveEnrollmentDialog: FC<
+  InjectInactiveEnrollmentDialogProps
+> = ({ closeDialog, experiment, injectInactiveEnrollment }) => {
+  // If there is only a single branch, default to it.
+  const [selectedBranch, setSelectedBranch] = useState<string>(
+    experiment.branches.length === 1 ? experiment.branches[0].slug : "",
+  );
+  const [reason, setReason] = useState<string>("nimbus-devtools");
+
+  const branchOptions = useMemo(
+    () =>
+      experiment.branches?.map((branch) => (
+        <option value={branch.slug} key={branch.slug}>
+          {branch.slug}
+        </option>
+      )),
+    [experiment],
+  );
+
+  const onBranchSelected = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => setSelectedBranch(e.target.value),
+    [],
+  );
+
+  const onReasonChanged = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => setReason(e.target.value),
+    [],
+  );
+
+  const handleInject = useCallback(async () => {
+    if (experiment && selectedBranch && reason.trim().length > 0) {
+      await injectInactiveEnrollment(experiment, selectedBranch, reason.trim());
+      closeDialog();
+    }
+  }, [
+    experiment,
+    selectedBranch,
+    reason,
+    injectInactiveEnrollment,
+    closeDialog,
+  ]);
+
+  return (
+    <>
+      <Modal.Header closeButton>
+        <Modal.Title>Inject Inactive Enrollment</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="inject-branchSelector">Branch</Form.Label>
+          <Form.Select value={selectedBranch ?? ""} onChange={onBranchSelected}>
+            <option value="">Select branch...</option>
+            {branchOptions}
+          </Form.Select>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="inject-unenrollReason">
+            Unenroll Reason
+          </Form.Label>
+          <Form.Select value={reason} onChange={onReasonChanged}>
+            <option value="nimbus-devtools">
+              Unenrolled by nimbus-devtools (nimbus-devtools)
+            </option>
+            <option value="recipe-not-seen">
+              Experiment ended (recipe-not-seen)
+            </option>
+            <option value="targeting-mismatch">
+              Did not match targeting (targeting-mismatch)
+            </option>
+            <option value="bucketing">
+              Did not meet bucketing (bucketing)
+            </option>
+            <option value="individual-opt-out">
+              User opted-out via about:studies (individual-opt-out)
+            </option>
+            {experiment?.isFirefoxLabsOptIn && (
+              <option value="labs-opt-out">
+                User opted-out via Firefox Labs (labs-opt-out)
+              </option>
+            )}
+            {experiment && experiment.isRollout ? (
+              <option value="rollout-opt-out">
+                User opted-out of all rollouts (rollouts-opt-out)
+              </option>
+            ) : (
+              <option value="studies-opt-out">
+                User opted-out of all studies (studies-opt-out)
+              </option>
+            )}
+            <option value="unenrolled-in-another-profile">
+              Another profile in the group unenrolled
+              (unenrolled-in-another-profile)
+            </option>
+            <option value="unknown">
+              Unknown unenrollment reason (unknown)
+            </option>
+          </Form.Select>
+        </Form.Group>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={closeDialog}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleInject}
+          disabled={selectedBranch === ""}
+        >
+          Inject
+        </Button>
+      </Modal.Footer>
+    </>
+  );
+};
+
 const ExperimentRow: FC<{
   experiment: DesktopNimbusExperiment;
   enrollment: NimbusEnrollment | null;
   deleteEnrollment: (s: string) => Promise<void>;
   openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
   openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
+  openInjectInactiveEnrollmentDialog: (e: DesktopNimbusExperiment) => void;
   debugTargeting: (slug: string) => void;
   unenroll: (slug: string) => Promise<void>;
 }> = ({
@@ -251,6 +380,7 @@ const ExperimentRow: FC<{
   deleteEnrollment,
   openForceEnrollDialog,
   openGenerateTestIdsDialog,
+  openInjectInactiveEnrollmentDialog,
   debugTargeting,
   unenroll,
 }) => {
@@ -279,6 +409,10 @@ const ExperimentRow: FC<{
       await unenroll(enrollment.slug);
     }
   }, [unenroll, enrollment]);
+  const handleInjectInactiveEnrollmentClicked = useCallback(
+    () => openInjectInactiveEnrollmentDialog(experiment),
+    [openInjectInactiveEnrollmentDialog, experiment],
+  );
 
   return (
     <tr>
@@ -332,6 +466,11 @@ const ExperimentRow: FC<{
                 Unenroll
               </Dropdown.Item>
             )}
+            {!enrollment && (
+              <Dropdown.Item onClick={handleInjectInactiveEnrollmentClicked}>
+                Inject past enrollment...
+              </Dropdown.Item>
+            )}
             {enrollment && !enrollment.active && (
               <Dropdown.Item
                 onClick={handleDeleteEnrollmentClicked}
@@ -356,8 +495,13 @@ const ExperimentBrowserPage: FC = () => {
   const [experiments, setExperiments] = useState<
     DesktopNimbusExperiment[] | null
   >(null);
-  const { enrollments, deleteEnrollment, forceEnroll, unenroll } =
-    useEnrollments();
+  const {
+    enrollments,
+    deleteEnrollment,
+    forceEnroll,
+    injectInactiveEnrollment,
+    unenroll,
+  } = useEnrollments();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -393,6 +537,7 @@ const ExperimentBrowserPage: FC = () => {
   }, [fetchExperiments]);
 
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
+
   const openForceEnrollmentDialog = useCallback(
     (experiment: DesktopNimbusExperiment) =>
       setDialogState({ kind: "force-enroll", experiment }),
@@ -401,6 +546,11 @@ const ExperimentBrowserPage: FC = () => {
   const openGenerateTestIdsDialog = useCallback(
     (experiment: DesktopNimbusExperiment) =>
       setDialogState({ kind: "generate-test-ids", experiment }),
+    [],
+  );
+  const openInjectInactiveEnrollmentDialog = useCallback(
+    (experiment: DesktopNimbusExperiment) =>
+      setDialogState({ kind: "inject-inactive-enrollment", experiment }),
     [],
   );
   const closeDialog = useCallback(() => setDialogState(null), []);
@@ -431,6 +581,9 @@ const ExperimentBrowserPage: FC = () => {
           deleteEnrollment={deleteEnrollment}
           openForceEnrollDialog={openForceEnrollmentDialog}
           openGenerateTestIdsDialog={openGenerateTestIdsDialog}
+          openInjectInactiveEnrollmentDialog={
+            openInjectInactiveEnrollmentDialog
+          }
           debugTargeting={debugTargeting}
           unenroll={unenroll}
           enrollment={
@@ -452,6 +605,7 @@ const ExperimentBrowserPage: FC = () => {
       deleteEnrollment,
       openGenerateTestIdsDialog,
       openForceEnrollmentDialog,
+      openInjectInactiveEnrollmentDialog,
       debugTargeting,
       unenroll,
     ],
@@ -553,6 +707,13 @@ const ExperimentBrowserPage: FC = () => {
         {dialogState?.kind === "generate-test-ids" && (
           <GenerateTestIdsDialog
             closeDialog={closeDialog}
+            experiment={dialogState.experiment}
+          />
+        )}
+        {dialogState?.kind === "inject-inactive-enrollment" && (
+          <InjectInactiveEnrollmentDialog
+            closeDialog={closeDialog}
+            injectInactiveEnrollment={injectInactiveEnrollment}
             experiment={dialogState.experiment}
           />
         )}

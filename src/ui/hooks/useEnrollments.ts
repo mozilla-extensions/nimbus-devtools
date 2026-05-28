@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+import { DesktopNimbusExperiment } from "@mozilla/nimbus-schemas";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToastsContext } from "./useToasts";
@@ -31,6 +32,11 @@ export type UseEnrollments = {
   loadEnrollments: () => Promise<void>;
   unenroll: (slug: string) => Promise<void>;
   deleteEnrollment: (slug: string) => Promise<void>;
+  injectInactiveEnrollment: (
+    experiment: DesktopNimbusExperiment,
+    branchSlug: string,
+    reason: string,
+  ) => Promise<void>;
 };
 
 export default function useEnrollments(): UseEnrollments {
@@ -96,6 +102,31 @@ export default function useEnrollments(): UseEnrollments {
     [addToast, loadEnrollments],
   );
 
+  const injectInactiveEnrollment = useCallback(
+    async (
+      experiment: DesktopNimbusExperiment,
+      branchSlug: string,
+      reason: string,
+    ) => {
+      try {
+        await browser.experiments.nimbus.injectInactiveEnrollment(
+          experiment,
+          branchSlug,
+          reason,
+        );
+        addToast({ message: "Enrollment injected", variant: "success" });
+        await loadEnrollments();
+      } catch (error) {
+        console.error(error);
+        addToast({
+          message: `Error injecting past enrollment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
+      }
+    },
+    [addToast, loadEnrollments],
+  );
+
   const deleteEnrollment = useCallback(
     async (slug: string) => {
       try {
@@ -126,5 +157,6 @@ export default function useEnrollments(): UseEnrollments {
     loadEnrollments,
     unenroll,
     deleteEnrollment,
+    injectInactiveEnrollment,
   };
 }
