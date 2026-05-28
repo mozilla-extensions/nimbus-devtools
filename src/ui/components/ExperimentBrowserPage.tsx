@@ -240,6 +240,7 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
 const ExperimentRow: FC<{
   experiment: DesktopNimbusExperiment;
   enrollment: NimbusEnrollment | null;
+  deleteEnrollment: (s: string) => Promise<void>;
   openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
   openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
   debugTargeting: (slug: string) => void;
@@ -247,11 +248,18 @@ const ExperimentRow: FC<{
 }> = ({
   experiment,
   enrollment,
+  deleteEnrollment,
   openForceEnrollDialog,
   openGenerateTestIdsDialog,
   debugTargeting,
   unenroll,
 }) => {
+  const handleDeleteEnrollmentClicked = useCallback(async () => {
+    // Use the enrollment slug to support deleting forced enrollments.
+    if (enrollment) {
+      await deleteEnrollment(enrollment.slug);
+    }
+  }, [deleteEnrollment, enrollment]);
   const handleForceEnrollClicked = useCallback(
     () => openForceEnrollDialog(experiment),
     [openForceEnrollDialog, experiment],
@@ -324,6 +332,14 @@ const ExperimentRow: FC<{
                 Unenroll
               </Dropdown.Item>
             )}
+            {enrollment && !enrollment.active && (
+              <Dropdown.Item
+                onClick={handleDeleteEnrollmentClicked}
+                color="danger"
+              >
+                Delete enrollment
+              </Dropdown.Item>
+            )}
           </Dropdown.Menu>
         </Dropdown>
       </td>
@@ -340,7 +356,8 @@ const ExperimentBrowserPage: FC = () => {
   const [experiments, setExperiments] = useState<
     DesktopNimbusExperiment[] | null
   >(null);
-  const { enrollments, forceEnroll, unenroll } = useEnrollments();
+  const { enrollments, deleteEnrollment, forceEnroll, unenroll } =
+    useEnrollments();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -411,6 +428,7 @@ const ExperimentBrowserPage: FC = () => {
         <ExperimentRow
           key={experiment.slug}
           experiment={experiment}
+          deleteEnrollment={deleteEnrollment}
           openForceEnrollDialog={openForceEnrollmentDialog}
           openGenerateTestIdsDialog={openGenerateTestIdsDialog}
           debugTargeting={debugTargeting}
@@ -431,6 +449,7 @@ const ExperimentBrowserPage: FC = () => {
     [
       experiments,
       enrollments,
+      deleteEnrollment,
       openGenerateTestIdsDialog,
       openForceEnrollmentDialog,
       debugTargeting,
