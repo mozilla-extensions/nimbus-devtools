@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { NimbusExperiment } from "@mozilla/nimbus-schemas";
+import { DesktopNimbusExperiment } from "@mozilla/nimbus-schemas";
 import {
   Table,
   Button,
@@ -25,11 +25,11 @@ type Status = "Live" | "Preview";
 type DialogState =
   | {
       kind: "force-enroll";
-      experiment: NimbusExperiment;
+      experiment: DesktopNimbusExperiment;
     }
   | {
       kind: "generate-test-ids";
-      experiment: NimbusExperiment;
+      experiment: DesktopNimbusExperiment;
     };
 
 enum Environment {
@@ -46,7 +46,7 @@ const EXPERIMENTER_API = {
 
 type DialogProps = {
   closeDialog: () => void;
-  experiment: NimbusExperiment | null;
+  experiment: DesktopNimbusExperiment | null;
 };
 
 type ForceEnrollmentDialogProps = DialogProps & { environment: Environment };
@@ -220,9 +220,9 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
 };
 
 const ExperimentRow: FC<{
-  experiment: NimbusExperiment;
-  openForceEnrollDialog: (e: NimbusExperiment) => void;
-  openGenerateTestIdsDialog: (e: NimbusExperiment) => void;
+  experiment: DesktopNimbusExperiment;
+  openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
+  openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
   debugTargeting: (slug: string) => void;
 }> = ({
   experiment,
@@ -279,7 +279,7 @@ const ExperimentBrowserPage: FC = () => {
 
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
-  const [experiments, setExperiments] = useState<NimbusExperiment[]>([]);
+  const [experiments, setExperiments] = useState<DesktopNimbusExperiment[]>([]);
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -291,7 +291,7 @@ const ExperimentBrowserPage: FC = () => {
 
       try {
         const fetchedExperiments = await fetch(url).then(
-          (rsp) => rsp.json() as Promise<NimbusExperiment[]>,
+          (rsp) => rsp.json() as Promise<DesktopNimbusExperiment[]>,
         );
         setExperiments(fetchedExperiments);
       } catch (error) {
@@ -314,12 +314,12 @@ const ExperimentBrowserPage: FC = () => {
 
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const openForceEnrollmentDialog = useCallback(
-    (experiment: NimbusExperiment) =>
+    (experiment: DesktopNimbusExperiment) =>
       setDialogState({ kind: "force-enroll", experiment }),
     [],
   );
   const openGenerateTestIdsDialog = useCallback(
-    (experiment: NimbusExperiment) =>
+    (experiment: DesktopNimbusExperiment) =>
       setDialogState({ kind: "generate-test-ids", experiment }),
     [],
   );
@@ -436,11 +436,13 @@ const ExperimentBrowserPage: FC = () => {
 async function fetchExperiment(
   environment: Environment,
   slug: string,
-): Promise<NimbusExperiment> {
+): Promise<DesktopNimbusExperiment> {
   const url = new URL(`${slug}/`, EXPERIMENTER_API[environment]);
   url.searchParams.append("bust-cache", Date.now().toString());
 
-  return fetch(url).then((rsp) => rsp.json()) as Promise<NimbusExperiment>;
+  return fetch(url).then((rsp) =>
+    rsp.json(),
+  ) as Promise<DesktopNimbusExperiment>;
 }
 
 async function tryEnroll(
@@ -448,7 +450,7 @@ async function tryEnroll(
   slug: string,
   branchSlug: string,
 ): Promise<AddToastParams> {
-  let experiment: NimbusExperiment;
+  let experiment: DesktopNimbusExperiment;
   try {
     experiment = await fetchExperiment(environment, slug);
   } catch (error) {
