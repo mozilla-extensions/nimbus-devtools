@@ -47,7 +47,7 @@ const EXPERIMENTER_API = {
 
 type DialogProps = {
   closeDialog: () => void;
-  experiment: DesktopNimbusExperiment | null;
+  experiment: DesktopNimbusExperiment;
 };
 
 type ForceEnrollmentDialogProps = DialogProps & { environment: Environment };
@@ -61,12 +61,12 @@ const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
 
   // If there is only a single branch, default to it.
   const [selectedBranch, setSelectedBranch] = useState<string>(
-    experiment?.branches?.length === 1 ? experiment.branches[0].slug : "",
+    experiment.branches.length === 1 ? experiment.branches[0].slug : "",
   );
 
   const branchOptions = useMemo(
     () =>
-      experiment?.branches?.map((branch) => (
+      experiment.branches.map((branch) => (
         <option value={branch.slug} key={branch.slug}>
           {branch.slug}
         </option>
@@ -80,7 +80,7 @@ const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
   );
 
   const handleEnroll = useCallback(async () => {
-    if (experiment && selectedBranch) {
+    if (selectedBranch) {
       const toast = await tryEnroll(
         environment,
         experiment.slug,
@@ -92,12 +92,12 @@ const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
   }, [environment, experiment, selectedBranch, addToast, closeDialog]);
 
   return (
-    <Modal show={experiment !== null} onHide={closeDialog}>
+    <>
       <Modal.Header closeButton>
         <Modal.Title>Force Enroll</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form.Select value={selectedBranch ?? ""} onChange={onBranchSelected}>
+        <Form.Select value={selectedBranch} onChange={onBranchSelected}>
           <option value="">Select branch...</option>
           {branchOptions}
         </Form.Select>
@@ -114,7 +114,7 @@ const ForceEnrollmentDialog: FC<ForceEnrollmentDialogProps> = ({
           Enroll
         </Button>
       </Modal.Footer>
-    </Modal>
+    </>
   );
 };
 
@@ -152,24 +152,22 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
   }, [testIds, addToast]);
 
   useEffect(() => {
-    if (experiment) {
-      browser.experiments.nimbus.generateTestIds(experiment).then(
-        (result) => setTestIds(result),
-        () => {
-          addToast({
-            message: "Test ID generation failed",
-            variant: "danger",
-          });
+    browser.experiments.nimbus.generateTestIds(experiment).then(
+      (result) => setTestIds(result),
+      () => {
+        addToast({
+          message: "Test ID generation failed",
+          variant: "danger",
+        });
 
-          closeDialog();
-        },
-      );
-    }
+        closeDialog();
+      },
+    );
   }, [experiment, addToast, closeDialog]);
 
   const rows = useMemo(
     () =>
-      experiment?.branches?.map((branch) => (
+      experiment.branches?.map((branch) => (
         <tr key={branch.slug}>
           <td>{branch.slug}</td>
           <td>
@@ -187,7 +185,7 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
   );
 
   return (
-    <Modal show={experiment !== null} onHide={closeDialog}>
+    <>
       <Modal.Header closeButton>
         <Modal.Title>Test IDs</Modal.Title>
       </Modal.Header>
@@ -216,7 +214,7 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
           Copy All as JSON
         </Button>
       </Modal.Footer>
-    </Modal>
+    </>
   );
 };
 
@@ -435,21 +433,21 @@ const ExperimentBrowserPage: FC = () => {
         )}
       </Container>
 
-      <ForceEnrollmentDialog
-        closeDialog={closeDialog}
-        environment={environment}
-        experiment={
-          dialogState?.kind === "force-enroll" ? dialogState.experiment : null
-        }
-      />
-      <GenerateTestIdsDialog
-        closeDialog={closeDialog}
-        experiment={
-          dialogState?.kind === "generate-test-ids"
-            ? dialogState.experiment
-            : null
-        }
-      />
+      <Modal show={dialogState !== null} onHide={closeDialog}>
+        {dialogState?.kind === "force-enroll" && (
+          <ForceEnrollmentDialog
+            closeDialog={closeDialog}
+            environment={environment}
+            experiment={dialogState.experiment}
+          />
+        )}
+        {dialogState?.kind === "generate-test-ids" && (
+          <GenerateTestIdsDialog
+            closeDialog={closeDialog}
+            experiment={dialogState.experiment}
+          />
+        )}
+      </Modal>
     </>
   );
 };
