@@ -243,12 +243,14 @@ const ExperimentRow: FC<{
   openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
   openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
   debugTargeting: (slug: string) => void;
+  unenroll: (slug: string) => Promise<void>;
 }> = ({
   experiment,
   enrollment,
   openForceEnrollDialog,
   openGenerateTestIdsDialog,
   debugTargeting,
+  unenroll,
 }) => {
   const handleForceEnrollClicked = useCallback(
     () => openForceEnrollDialog(experiment),
@@ -262,6 +264,13 @@ const ExperimentRow: FC<{
     () => debugTargeting(experiment.slug),
     [debugTargeting, experiment],
   );
+  const handleUnenrollClicked = useCallback(async () => {
+    // Use the enrollment slug to support unenrollment from forced
+    // enrollments.
+    if (enrollment) {
+      await unenroll(enrollment.slug);
+    }
+  }, [unenroll, enrollment]);
 
   return (
     <tr>
@@ -310,6 +319,11 @@ const ExperimentRow: FC<{
             <Dropdown.Item onClick={handleDebugTargetingClicked}>
               Debug Targeting
             </Dropdown.Item>
+            {enrollment?.active && (
+              <Dropdown.Item onClick={handleUnenrollClicked}>
+                Unenroll
+              </Dropdown.Item>
+            )}
           </Dropdown.Menu>
         </Dropdown>
       </td>
@@ -326,7 +340,7 @@ const ExperimentBrowserPage: FC = () => {
   const [experiments, setExperiments] = useState<
     DesktopNimbusExperiment[] | null
   >(null);
-  const { enrollments, forceEnroll } = useEnrollments();
+  const { enrollments, forceEnroll, unenroll } = useEnrollments();
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
@@ -400,6 +414,7 @@ const ExperimentBrowserPage: FC = () => {
           openForceEnrollDialog={openForceEnrollmentDialog}
           openGenerateTestIdsDialog={openGenerateTestIdsDialog}
           debugTargeting={debugTargeting}
+          unenroll={unenroll}
           enrollment={
             enrollments?.find(
               (enrollment) =>
@@ -419,6 +434,7 @@ const ExperimentBrowserPage: FC = () => {
       openGenerateTestIdsDialog,
       openForceEnrollmentDialog,
       debugTargeting,
+      unenroll,
     ],
   );
 
