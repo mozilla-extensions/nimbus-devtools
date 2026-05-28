@@ -16,12 +16,13 @@ import {
   Col,
   Dropdown,
   Modal,
+  Spinner,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 import { AddToastParams, useToastsContext } from "../hooks/useToasts";
 
-type Status = "Live" | "Preview";
+type Status = "Live" | "Preview" | "Complete";
 type DialogState =
   | {
       kind: "force-enroll";
@@ -279,10 +280,14 @@ const ExperimentBrowserPage: FC = () => {
 
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
-  const [experiments, setExperiments] = useState<DesktopNimbusExperiment[]>([]);
+  const [experiments, setExperiments] = useState<
+    DesktopNimbusExperiment[] | null
+  >(null);
 
   const fetchExperiments = useCallback(
     async (forceRefresh = false) => {
+      setExperiments(null);
+
       const url = new URL(EXPERIMENTER_API[environment]);
       url.searchParams.append("status", status);
       if (forceRefresh) {
@@ -344,7 +349,7 @@ const ExperimentBrowserPage: FC = () => {
 
   const experimentRows = useMemo(
     () =>
-      experiments.map((experiment) => (
+      experiments?.map((experiment) => (
         <ExperimentRow
           key={experiment.slug}
           experiment={experiment}
@@ -361,9 +366,17 @@ const ExperimentBrowserPage: FC = () => {
     ],
   );
 
+  const handleStatusChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setStatus(e.target.value as Status);
+      setExperiments(null);
+    },
+    [],
+  );
+
   return (
     <>
-      <Container>
+      <Container style={{ minHeight: "100%" }} className="d-flex flex-column">
         <h1 className="primary-fg my-3 fw-bold fs-3">{status} Experiments</h1>
         <Row className="mb-3 text-center">
           <Col md={4} className="d-flex align-items-center">
@@ -373,6 +386,7 @@ const ExperimentBrowserPage: FC = () => {
             <Form.Select
               value={environment}
               onChange={(e) => setEnvironment(e.target.value as Environment)}
+              disabled={experiments === null}
               className="grey-border rounded align-items-center"
             >
               <option value="prod">Production</option>
@@ -385,33 +399,40 @@ const ExperimentBrowserPage: FC = () => {
             </Form.Label>
             <Form.Select
               value={status}
-              onChange={(e) => setStatus(e.target.value as Status)}
+              onChange={handleStatusChange}
+              disabled={experiments === null}
               className="grey-border rounded align-items-center"
             >
               <option value="Live">Live</option>
               <option value="Preview">Preview</option>
+              <option value="Complete">Complete</option>
             </Form.Select>
           </Col>
           <Col md={3} className="d-flex align-items-start">
             <Button
               onClick={() => fetchExperiments(true)}
+              disabled={experiments === null}
               className="option-button primary-fg mx-2 py-2 px-3 rounded small-font fw-bold grey-border light-bg"
             >
               Refresh
             </Button>
           </Col>
         </Row>
-        <Table hover>
-          <thead>
-            <tr>
-              <th className="text-center primary-fg light-bg">Experiment</th>
-              <th className="text-center primary-fg light-bg">Channel</th>
-              <th className="text-center primary-fg light-bg">Status</th>
-              <th className="text-center primary-fg light-bg">Actions</th>
-            </tr>
-          </thead>
-          <tbody>{experimentRows}</tbody>
-        </Table>
+        {experiments === null ? (
+          <Spinner className="m-auto" />
+        ) : (
+          <Table hover>
+            <thead>
+              <tr>
+                <th className="text-center primary-fg light-bg">Experiment</th>
+                <th className="text-center primary-fg light-bg">Channel</th>
+                <th className="text-center primary-fg light-bg">Status</th>
+                <th className="text-center primary-fg light-bg">Actions</th>
+              </tr>
+            </thead>
+            <tbody>{experimentRows}</tbody>
+          </Table>
+        )}
       </Container>
 
       <ForceEnrollmentDialog
