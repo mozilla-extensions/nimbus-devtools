@@ -13,8 +13,17 @@ export type NimbusEnrollment = {
   userFacingDescription: string;
   isRollout: boolean;
   featureIds: string[];
-  active: boolean;
-};
+  branch: { slug: string };
+  source: string;
+} & (
+  | {
+      active: true;
+    }
+  | {
+      active: false;
+      unenrollReason: string;
+    }
+);
 
 export type UseEnrollments = {
   enrollments: NimbusEnrollment[] | null;

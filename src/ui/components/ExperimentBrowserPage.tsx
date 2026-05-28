@@ -266,12 +266,34 @@ const ExperimentRow: FC<{
   return (
     <tr>
       <td className="align-middle ps-0 py-3 w-50">
-        <strong>{experiment.userFacingName}</strong>:{" "}
+        <strong>{experiment.userFacingName}</strong>
+        <br />
         {experiment.userFacingDescription}
       </td>
       <td className="text-center align-middle px-2">{experiment.channel}</td>
       <td className="text-center align-middle px-2">
         {experiment.isEnrollmentPaused ? "Enrollment Paused" : "Enrolling"}
+      </td>
+      <td className="px-2">
+        {enrollment ? (
+          enrollment.active ? (
+            enrollment.source === "force-enrollment" ? (
+              "Enrolled (force enrollment)"
+            ) : (
+              "Enrolled"
+            )
+          ) : (
+            <>
+              Unenrolled <br />(
+              <code>{enrollment.unenrollReason ?? "(unknown)"}</code>)
+            </>
+          )
+        ) : (
+          "Never enrolled"
+        )}
+      </td>
+      <td>
+        <code>{enrollment?.branch.slug}</code>
       </td>
       <td className="text-center align-middle px-2">
         <Dropdown>
@@ -380,8 +402,14 @@ const ExperimentBrowserPage: FC = () => {
           debugTargeting={debugTargeting}
           enrollment={
             enrollments?.find(
+              (enrollment) =>
+                enrollment.slug === `optin-${experiment.slug}` &&
+                enrollment.source === "force-enrollment",
+            ) ??
+            enrollments?.find(
               (enrollment) => enrollment.slug === experiment.slug,
-            ) ?? null
+            ) ??
+            null
           }
         />
       )),
@@ -452,10 +480,25 @@ const ExperimentBrowserPage: FC = () => {
           <Table hover>
             <thead>
               <tr>
-                <th className="text-center primary-fg light-bg">Experiment</th>
-                <th className="text-center primary-fg light-bg">Channel</th>
-                <th className="text-center primary-fg light-bg">Status</th>
-                <th className="text-center primary-fg light-bg">Actions</th>
+                <th className="text-center primary-fg light-bg" rowSpan={2}>
+                  Experiment
+                </th>
+                <th className="text-center primary-fg light-bg" rowSpan={2}>
+                  Channel
+                </th>
+                <th className="text-center primary-fg light-bg" rowSpan={2}>
+                  Status
+                </th>
+                <th className="text-center primary-fg light-bg" colSpan={2}>
+                  Enrollment
+                </th>
+                <th className="text-center primary-fg light-bg" rowSpan={2}>
+                  Actions
+                </th>
+              </tr>
+              <tr>
+                <th className="text-center primary-fg light-bg">Enrolled?</th>
+                <th className="text-center primary-fg light-bg">Branch</th>
               </tr>
             </thead>
             <tbody>{experimentRows}</tbody>
