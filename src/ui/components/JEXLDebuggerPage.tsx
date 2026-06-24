@@ -72,6 +72,7 @@ function ContextField<TValue extends FormDataValue>({
           value={value as string}
           onChange={handleChange}
           className="p-3 w-50 grey-border short-text"
+          id={`context.${contextKey}`}
         />
       );
 
@@ -81,7 +82,8 @@ function ContextField<TValue extends FormDataValue>({
           type="text"
           value={value as string}
           onChange={handleChange}
-          className="p-3 w-50 grey-border short-text"
+          className="p-3 grey-border short-text"
+          id={`context.${contextKey}`}
         />
       );
 
@@ -89,10 +91,16 @@ function ContextField<TValue extends FormDataValue>({
       return (
         <Form.Check
           type="checkbox"
-          checked={value as boolean}
-          onChange={handleChange}
-          className="p-3 w-50 ms-4 ps-5 mb-2 large-checkbox short-text"
-        />
+          className="short-text d-flex align-items-center"
+        >
+          <Form.Check.Input
+            type="checkbox"
+            checked={value as boolean}
+            onChange={handleChange}
+            id={`context.${contextKey}`}
+            className="mt-0 large-checkbox grey-border"
+          />
+        </Form.Check>
       );
 
     case "Date":
@@ -103,6 +111,7 @@ function ContextField<TValue extends FormDataValue>({
           value={value as string}
           onChange={handleChange}
           className="p-3 w-50 grey-border short-text"
+          id={`context.${contextKey}`}
         />
       );
 
@@ -112,8 +121,9 @@ function ContextField<TValue extends FormDataValue>({
           as="textarea"
           value={value as string}
           onChange={handleChange}
-          className="p-3 w-50 grey-border long-text"
+          className="p-3 grey-border long-text font-monospace"
           placeholder="null"
+          id={`context.${contextKey}`}
         />
       );
 
@@ -338,9 +348,14 @@ const JEXLDebuggerPage: FC = () => {
             Reset Context
           </Button>
           {Object.entries(originalContext).map(([key]) => (
-            <Row key={key} className="mb-4 d-flex align-items-center">
-              <Col xs={3} className="secondary-fg fw-bold">
-                {key}
+            <Row key={key} className="mb-2">
+              <Col xs={3} className="d-flex align-items-center">
+                <Form.Label
+                  htmlFor={`context.${key}`}
+                  className="mb-0 font-monospace"
+                >
+                  {key}
+                </Form.Label>
               </Col>
               <Col xs={9}>
                 <ContextField

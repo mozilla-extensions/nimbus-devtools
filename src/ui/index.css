@@ -92,7 +92,8 @@ html {
 }
 
 .large-checkbox {
-  transform: scale(1.5);
+  height: 2em;
+  width: 2em;
 }
 
 .checkbox-border {
