@@ -80,7 +80,7 @@
     "web-ext-types": "^3.2.1"
   },
   "dependencies": {
-    "@mozilla/nimbus-schemas": "^3001.0.0",
+    "@mozilla/nimbus-schemas": "3003.1",
     "bootstrap": "^5.3.3",
     "mozjexl": "github:mozilla/mozjexl",
     "normalize.css": "^8.0.1",

@@ -6,7 +6,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import { DesktopNimbusExperiment } from "@mozilla/nimbus-schemas";
+import {
+  DesktopNimbusExperiment,
+  NimbusExperimentV7,
+} from "@mozilla/nimbus-schemas";
 import {
   Table,
   Button,
@@ -24,19 +27,10 @@ import useEnrollments from "../hooks/useEnrollments";
 import { useToastsContext } from "../hooks/useToasts";
 
 type Status = "Live" | "Preview" | "Complete";
-type DialogState =
-  | {
-      kind: "force-enroll";
-      experiment: DesktopNimbusExperiment;
-    }
-  | {
-      kind: "generate-test-ids";
-      experiment: DesktopNimbusExperiment;
-    }
-  | {
-      kind: "inject-inactive-enrollment";
-      experiment: DesktopNimbusExperiment;
-    };
+type DialogState = {
+  kind: "force-enroll" | "generate-test-ids" | "inject-inactive-enrollment";
+  experiment: NimbusExperimentV7;
+};
 
 enum Environment {
   PROD = "prod",
@@ -44,15 +38,21 @@ enum Environment {
 }
 
 const EXPERIMENTER_API = {
-  [Environment.PROD]:
-    "https://experimenter.services.mozilla.com/api/v6/experiments/",
-  [Environment.STAGE]:
-    "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v6/experiments/",
+  [Environment.PROD]: {
+    metadata: "https://experimenter.services.mozilla.com/api/v7/experiments/",
+    recipes: "https://experimenter.services.mozilla.com/api/v6/experiments/",
+  },
+  [Environment.STAGE]: {
+    metadata:
+      "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v7/experiments/",
+    recipes:
+      "https://stage.experimenter.nonprod.webservices.mozgcp.net/api/v6/experiments/",
+  },
 };
 
 type DialogProps = {
   closeDialog: () => void;
-  experiment: DesktopNimbusExperiment;
+  experiment: NimbusExperimentV7;
 };
 
 type ForceEnrollmentDialogProps = DialogProps & {
@@ -61,6 +61,7 @@ type ForceEnrollmentDialogProps = DialogProps & {
 };
 
 type InjectInactiveEnrollmentDialogProps = DialogProps & {
+  environment: Environment;
   injectInactiveEnrollment: (
     experiment: DesktopNimbusExperiment,
     branchSlug: string,
@@ -251,7 +252,9 @@ const GenerateTestIdsDialog: FC<DialogProps> = ({
 
 const InjectInactiveEnrollmentDialog: FC<
   InjectInactiveEnrollmentDialogProps
-> = ({ closeDialog, experiment, injectInactiveEnrollment }) => {
+> = ({ environment, closeDialog, experiment, injectInactiveEnrollment }) => {
+  const { addToast } = useToastsContext();
+
   // If there is only a single branch, default to it.
   const [selectedBranch, setSelectedBranch] = useState<string>(
     experiment.branches.length === 1 ? experiment.branches[0].slug : "",
@@ -280,10 +283,23 @@ const InjectInactiveEnrollmentDialog: FC<
 
   const handleInject = useCallback(async () => {
     if (experiment && selectedBranch && reason.trim().length > 0) {
-      await injectInactiveEnrollment(experiment, selectedBranch, reason.trim());
+      let recipe: DesktopNimbusExperiment;
+      try {
+        recipe = await fetchExperiment(environment, experiment.slug);
+      } catch (error) {
+        addToast({
+          message: `Could not fetch experiment: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        });
+        return;
+      }
+
+      await injectInactiveEnrollment(recipe, selectedBranch, reason.trim());
       closeDialog();
     }
   }, [
+    addToast,
+    environment,
     experiment,
     selectedBranch,
     reason,
@@ -366,12 +382,12 @@ const InjectInactiveEnrollmentDialog: FC<
 };
 
 const ExperimentRow: FC<{
-  experiment: DesktopNimbusExperiment;
+  experiment: NimbusExperimentV7;
   enrollment: NimbusEnrollment | null;
   deleteEnrollment: (s: string) => Promise<void>;
-  openForceEnrollDialog: (e: DesktopNimbusExperiment) => void;
-  openGenerateTestIdsDialog: (e: DesktopNimbusExperiment) => void;
-  openInjectInactiveEnrollmentDialog: (e: DesktopNimbusExperiment) => void;
+  openForceEnrollDialog: (e: NimbusExperimentV7) => void;
+  openGenerateTestIdsDialog: (e: NimbusExperimentV7) => void;
+  openInjectInactiveEnrollmentDialog: (e: NimbusExperimentV7) => void;
   debugTargeting: (slug: string) => void;
   unenroll: (slug: string) => Promise<void>;
 }> = ({
@@ -423,11 +439,15 @@ const ExperimentRow: FC<{
         <br />
         {experiment.userFacingDescription}
       </td>
-      <td className="text-center align-middle px-2">{experiment.channel}</td>
+      <td className="text-center align-middle px-2">
+        {experiment.channels?.length
+          ? experiment.channels.join(" ")
+          : experiment.channel}
+      </td>
       <td className="text-center align-middle px-2">
         {experiment.isEnrollmentPaused ? "Enrollment Paused" : "Enrolling"}
       </td>
-      <td className="px-2">
+      <td className="text-center align-middle px-2">
         {enrollment ? (
           enrollment.active ? (
             enrollment.source === "force-enrollment" ? (
@@ -445,7 +465,7 @@ const ExperimentRow: FC<{
           "Never enrolled"
         )}
       </td>
-      <td>
+      <td className="text-center align-middle px-2">
         <code>{enrollment?.branch.slug}</code>
       </td>
       <td className="text-center align-middle px-2">
@@ -494,9 +514,9 @@ const ExperimentBrowserPage: FC = () => {
 
   const [environment, setEnvironment] = useState<Environment>(Environment.PROD);
   const [status, setStatus] = useState<Status>("Live");
-  const [experiments, setExperiments] = useState<
-    DesktopNimbusExperiment[] | null
-  >(null);
+  const [experiments, setExperiments] = useState<NimbusExperimentV7[] | null>(
+    null,
+  );
   const {
     enrollments,
     deleteEnrollment,
@@ -506,52 +526,41 @@ const ExperimentBrowserPage: FC = () => {
   } = useEnrollments();
 
   const fetchExperiments = useCallback(
-    async (forceRefresh = false) => {
-      setExperiments(null);
-
-      const url = new URL(EXPERIMENTER_API[environment]);
-      url.searchParams.append("status", status);
-      if (forceRefresh) {
-        url.searchParams.append("bust-cache", Date.now().toString());
-      }
-
-      try {
-        const fetchedExperiments = await fetch(url).then(
-          (rsp) => rsp.json() as Promise<DesktopNimbusExperiment[]>,
-        );
-        setExperiments(fetchedExperiments);
-      } catch (error) {
-        addToast({
-          message: `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
-        });
-      }
-    },
+    (forceRefresh = false) =>
+      fetchAllExperimentMetadata(environment, status, forceRefresh).then(
+        (rsp) => setExperiments(rsp),
+        (error) =>
+          addToast({
+            message: `Error fetching experiments: ${(error as Error).message ?? String(error)}`,
+            variant: "danger",
+          }),
+      ),
     [environment, status, addToast],
   );
 
+  const refetchExperiments = useCallback(() => {
+    setExperiments(null);
+    void fetchExperiments();
+  }, [fetchExperiments]);
+
   useEffect(() => {
-    // This will raise a false positive about calling setState in effect, even
-    // though the setState happens *after* an await statement.
-    // See-also: https://github.com/facebook/react/issues/34905
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchExperiments();
   }, [fetchExperiments]);
 
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
 
   const openForceEnrollmentDialog = useCallback(
-    (experiment: DesktopNimbusExperiment) =>
+    (experiment: NimbusExperimentV7) =>
       setDialogState({ kind: "force-enroll", experiment }),
     [],
   );
   const openGenerateTestIdsDialog = useCallback(
-    (experiment: DesktopNimbusExperiment) =>
+    (experiment: NimbusExperimentV7) =>
       setDialogState({ kind: "generate-test-ids", experiment }),
     [],
   );
   const openInjectInactiveEnrollmentDialog = useCallback(
-    (experiment: DesktopNimbusExperiment) =>
+    (experiment: NimbusExperimentV7) =>
       setDialogState({ kind: "inject-inactive-enrollment", experiment }),
     [],
   );
@@ -657,7 +666,7 @@ const ExperimentBrowserPage: FC = () => {
           </Col>
           <Col md={3} className="d-flex align-items-start">
             <Button
-              onClick={() => fetchExperiments(true)}
+              onClick={refetchExperiments}
               disabled={experiments === null}
               className="option-button primary-fg mx-2 py-2 px-3 rounded small-font fw-bold grey-border light-bg"
             >
@@ -715,6 +724,7 @@ const ExperimentBrowserPage: FC = () => {
         {dialogState?.kind === "inject-inactive-enrollment" && (
           <InjectInactiveEnrollmentDialog
             closeDialog={closeDialog}
+            environment={environment}
             injectInactiveEnrollment={injectInactiveEnrollment}
             experiment={dialogState.experiment}
           />
@@ -724,11 +734,27 @@ const ExperimentBrowserPage: FC = () => {
   );
 };
 
+function fetchAllExperimentMetadata(
+  environment: Environment,
+  status: Status,
+  forceRefresh: boolean = false,
+): Promise<NimbusExperimentV7[]> {
+  const url = new URL(EXPERIMENTER_API[environment].metadata);
+
+  url.searchParams.append("status", status);
+  url.searchParams.append("application", "firefox-desktop");
+  if (forceRefresh) {
+    url.searchParams.append("bust-cache", Date.now().toString());
+  }
+
+  return fetch(url).then((rsp) => rsp.json() as Promise<NimbusExperimentV7[]>);
+}
+
 async function fetchExperiment(
   environment: Environment,
   slug: string,
 ): Promise<DesktopNimbusExperiment> {
-  const url = new URL(`${slug}/`, EXPERIMENTER_API[environment]);
+  const url = new URL(`${slug}/`, EXPERIMENTER_API[environment].recipes);
   url.searchParams.append("bust-cache", Date.now().toString());
 
   return fetch(url).then((rsp) =>
