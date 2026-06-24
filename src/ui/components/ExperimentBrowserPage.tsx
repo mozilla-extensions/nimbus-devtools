@@ -419,6 +419,8 @@ const ExperimentRow: FC<{
       <td className="align-middle ps-0 py-3 w-50">
         <strong>{experiment.userFacingName}</strong>
         <br />
+        <code>{experiment.slug}</code>
+        <br />
         {experiment.userFacingDescription}
       </td>
       <td className="text-center align-middle px-2">{experiment.channel}</td>
