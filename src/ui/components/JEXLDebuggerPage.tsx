@@ -7,14 +7,23 @@ import {
   useMemo,
   useRef,
 } from "react";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import {
+  Badge,
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Tooltip,
+  OverlayTrigger,
+  TooltipProps,
+} from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 
 import { useToastsContext } from "../hooks/useToasts";
 import { evaluateJexl } from "../jexlParser";
 import { debounce } from "../utils/functional";
 
-type ContextValue = object | string | boolean | number | Date | undefined;
 type FieldType = "object" | "string" | "boolean" | "number" | "Date";
 type FormDataValue = string | boolean;
 
@@ -30,7 +39,7 @@ type ContextFieldProps<TValue extends FormDataValue> = {
   value: TValue;
 };
 
-const getFieldType = (value: ContextValue): FieldType => {
+const getFieldType = (value: ClientContextValue): FieldType => {
   switch (typeof value) {
     case "string":
       return "string";
@@ -141,75 +150,66 @@ type JEXLDebuggerPageState = {
 
 const JEXLDebuggerPage: FC = () => {
   const mounted = useRef<boolean>(false);
-  const [originalContext, setOriginalContext] = useState<
-    Record<string, ContextValue>
-  >({});
-  const [modifiedContext, setModifiedContext] = useState<
-    Record<string, ContextValue>
-  >({});
-  const [formData, setFormData] = useState<Record<string, FormDataValue>>({});
   const { state: locationState } = useLocation() as {
     state: JEXLDebuggerPageState | null;
   };
+  const { addToast } = useToastsContext();
+  const [clientContext, setClientContext] = useState<ClientContext | null>();
+  const [contextOverrides, setContextOverrides] = useState<
+    Record<string, ClientContextValue>
+  >({});
+  const [formData, setFormData] = useState<Record<string, FormDataValue>>({});
   const [jexlExpression, setJexlExpression] = useState(
     locationState?.jexlExpression ?? "",
   );
   const [output, setOutput] = useState("");
-  const { addToast } = useToastsContext();
 
   const fetchClientContext = useCallback(async () => {
-    try {
-      const context =
-        (await browser.experiments.nimbus.getClientContext()) as Record<
-          string,
-          ContextValue
-        >;
-      setOriginalContext(context);
-      setModifiedContext({});
-      setFormData(
-        Object.fromEntries(
-          Object.entries(context).map(([key, value]) => {
-            let formValue: FormDataValue;
-            const fieldType = getFieldType(value);
+    await browser.experiments.nimbus.getClientContext().then(
+      (context) => {
+        setClientContext(context);
+        setContextOverrides({});
+        setFormData(
+          Object.fromEntries(
+            Object.entries(context.values).map(([key, value]) => {
+              let formValue: FormDataValue;
+              const fieldType = getFieldType(value);
 
-            switch (fieldType) {
-              case "string":
-                formValue = value as string;
-                break;
-              case "boolean":
-                formValue = value as boolean;
-                break;
-              case "number":
-                formValue = (value as number).toString();
-                break;
-              case "Date":
-                formValue = (value as Date).toISOString().slice(0, 19);
-                break;
-              case "object":
-                if (typeof value === "undefined") {
-                  formValue = "undefined";
-                } else {
-                  formValue = JSON.stringify(value, null, 2);
-                }
-                break;
-            }
-            return [key, formValue];
-          }),
-        ),
-      );
-    } catch (error) {
-      addToast({
-        message: `Error fetching client context: ${(error as Error).message ?? String(error)}`,
-        variant: "danger",
-      });
-    }
+              switch (fieldType) {
+                case "string":
+                  formValue = value as string;
+                  break;
+                case "boolean":
+                  formValue = value as boolean;
+                  break;
+                case "number":
+                  formValue = (value as number).toString();
+                  break;
+                case "Date":
+                  formValue = (value as Date).toISOString().slice(0, 19);
+                  break;
+                case "object":
+                  if (typeof value === "undefined") {
+                    formValue = "undefined";
+                  } else {
+                    formValue = JSON.stringify(value, null, 2);
+                  }
+                  break;
+              }
+              return [key, formValue];
+            }),
+          ),
+        );
+      },
+      (error) =>
+        addToast({
+          message: `Error fetching client context: ${(error as Error).message ?? String(error)}`,
+          variant: "danger",
+        }),
+    );
   }, [addToast]);
 
   useEffect(() => {
-    // This will raise a false positive about calling setState in effect, even
-    // though the setState happens *after* an await statement.
-    // See-also: https://github.com/facebook/react/issues/34905
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchClientContext();
   }, [fetchClientContext]);
 
@@ -222,8 +222,8 @@ const JEXLDebuggerPage: FC = () => {
 
   const evaluateExpression = useCallback(() => {
     evaluateJexl(jexlExpression, {
-      ...originalContext,
-      ...modifiedContext,
+      ...clientContext?.values,
+      ...contextOverrides,
     }).then(
       (result) => setOutput(result),
       (error) => {
@@ -234,14 +234,14 @@ const JEXLDebuggerPage: FC = () => {
         });
       },
     );
-  }, [jexlExpression, modifiedContext, originalContext, addToast]);
+  }, [jexlExpression, contextOverrides, clientContext, addToast]);
 
   const parseAndSetContext = useMemo(() => {
     return debounce((key: string, value: string, isNumber: boolean) => {
       if (isNumber) {
         const numVal = parseInt(value);
         if (!isNaN(numVal)) {
-          setModifiedContext((prevContext) => ({
+          setContextOverrides((prevContext) => ({
             ...prevContext,
             [key]: numVal,
           }));
@@ -256,8 +256,8 @@ const JEXLDebuggerPage: FC = () => {
           const parsedValue =
             value.trim() === "undefined"
               ? undefined
-              : (JSON.parse(value) as ContextValue);
-          setModifiedContext((prevContext) => ({
+              : (JSON.parse(value) as ClientContextValue);
+          setContextOverrides((prevContext) => ({
             ...prevContext,
             [key]: parsedValue,
           }));
@@ -283,21 +283,21 @@ const JEXLDebuggerPage: FC = () => {
           break;
 
         case "boolean":
-          setModifiedContext((prevContext) => ({
+          setContextOverrides((prevContext) => ({
             ...prevContext,
             [key]: value,
           }));
           break;
 
         case "Date":
-          setModifiedContext((prevContext) => ({
+          setContextOverrides((prevContext) => ({
             ...prevContext,
             [key]: new Date(value as string),
           }));
           break;
 
         case "string":
-          setModifiedContext((prevContext) => ({
+          setContextOverrides((prevContext) => ({
             ...prevContext,
             [key]: value,
           }));
@@ -357,30 +357,56 @@ const JEXLDebuggerPage: FC = () => {
           >
             Reset Context
           </Button>
-          {Object.entries(originalContext).map(([key]) => (
-            <Row key={key} className="mb-2">
-              <Col xs={3} className="d-flex align-items-center">
-                <Form.Label
-                  htmlFor={`context.${key}`}
-                  className="mb-0 font-monospace"
-                >
-                  {key}
-                </Form.Label>
-              </Col>
-              <Col xs={9}>
-                <ContextField
-                  contextKey={key}
-                  value={formData[key]}
-                  onChange={handleContextChange}
-                  fieldType={getFieldType(originalContext[key])}
-                />
-              </Col>
-            </Row>
-          ))}
+          {clientContext &&
+            Object.entries(clientContext.values).map(([key]) => (
+              <Row key={key} className="mb-2">
+                <Col xs={3} className="d-flex align-items-center">
+                  <Form.Label
+                    htmlFor={`context.${key}`}
+                    className="mb-0 font-monospace"
+                  >
+                    {key}
+                  </Form.Label>
+                  {clientContext.attrs.includes(key) || (
+                    <OverlayTrigger
+                      overlay={NotInMetricsWarning}
+                      placement="bottom"
+                    >
+                      <span>
+                        <Badge
+                          bg="danger"
+                          className="ms-1"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          !
+                        </Badge>
+                      </span>
+                    </OverlayTrigger>
+                  )}
+                </Col>
+                <Col xs={9}>
+                  <ContextField
+                    contextKey={key}
+                    value={formData[key]}
+                    onChange={handleContextChange}
+                    fieldType={getFieldType(clientContext.values[key])}
+                  />
+                </Col>
+              </Row>
+            ))}
         </Col>
       </Row>
     </Container>
   );
 };
+
+function NotInMetricsWarning(props: TooltipProps): JSX.Element {
+  return (
+    <Tooltip {...props}>
+      This attribute is not reported in Nimbus targeting context telemetry and
+      is not indexed by Experimenter.
+    </Tooltip>
+  );
+}
 
 export default JEXLDebuggerPage;

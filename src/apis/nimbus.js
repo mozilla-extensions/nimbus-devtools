@@ -28,6 +28,18 @@ ChromeUtils.defineLazyGetter(this, "_ExperimentAPI", () => {
   }
 });
 
+ChromeUtils.defineLazyGetter(this, "TargetingContextRecorder", () => {
+  try {
+    return ChromeUtils.importESModule(
+      "moz-src:///toolkit/components/nimbus/lib/TargetingContextRecorder.sys.mjs",
+    );
+  } catch {
+    return ChromeUtils.importESModule(
+      "resource://nimbus/lib/TargetingContextRecorder.sys.mjs",
+    );
+  }
+});
+
 ChromeUtils.defineLazyGetter(
   this,
   "ExperimentAPI",
@@ -296,7 +308,7 @@ var nimbus = class extends ExtensionAPI {
               ExperimentManager.createTargetingContext(),
             );
 
-            const targetingParameters = {
+            const values = {
               ...environment,
               ...localContext,
               // This code is based on the implementation from:
@@ -309,7 +321,10 @@ var nimbus = class extends ExtensionAPI {
               os: ClientEnvironmentBase.os,
             };
 
-            return targetingParameters;
+            return {
+              attrs: Object.keys(TargetingContextRecorder.ATTRIBUTE_TRANSFORMS),
+              values,
+            };
           },
 
           async updateRecipes() {

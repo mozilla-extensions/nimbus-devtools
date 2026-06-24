@@ -136,6 +136,11 @@ type CurrentCollection = {
   prefValue: string;
 };
 
+type ClientContextValue = object | string | boolean | number | Date | undefined;
+type ClientContext = {
+  attrs: string[];
+  values: Record<string, ClientContextValue>;
+};
 declare namespace browser.experiments.nimbus {
   function enrollInExperiment(
     jsonData: object,
@@ -157,7 +162,7 @@ declare namespace browser.experiments.nimbus {
 
   function evaluateJEXL(expression: string, context: object): Promise<unknown>;
 
-  function getClientContext(): Promise<object>;
+  function getClientContext(): Promise<ClientContext>;
 
   function injectInactiveEnrollment(
     recipe: object,

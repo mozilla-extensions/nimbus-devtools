@@ -48,10 +48,10 @@ export async function evaluateJexl(
 
   const finalResultStr =
     typeof finalResult === "undefined"
-    ? "undefined"
-    : typeof finalResult === "string"
-      ? quoteString(finalResult)
-      : JSON.stringify(finalResult, null, 2);
+      ? "undefined"
+      : typeof finalResult === "string"
+        ? quoteString(finalResult)
+        : JSON.stringify(finalResult, null, 2);
 
   const falsePartsStr =
     finalResult === false ? `\n\nFalse Parts:\n${falseParts.join("\n")}` : "";
