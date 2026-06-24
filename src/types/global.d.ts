@@ -131,6 +131,11 @@ type EnrollInExperimentResult =
 
 type NimbusEnrollment = import("../ui/hooks/useEnrollments").NimbusEnrollment;
 
+type CurrentCollection = {
+  cachedValue: string;
+  prefValue: string;
+};
+
 declare namespace browser.experiments.nimbus {
   function enrollInExperiment(
     jsonData: object,
@@ -146,7 +151,7 @@ declare namespace browser.experiments.nimbus {
 
   function getFeatureConfigs(): Promise<string[]>;
 
-  function getCurrentCollection(): Promise<string>;
+  function getCurrentCollection(): Promise<CurrentCollection>;
 
   function setCollection(collectionId: string): Promise<void>;
 
@@ -160,7 +165,7 @@ declare namespace browser.experiments.nimbus {
     reason: string,
   ): Promise<void>;
 
-  function updateRecipes(forceSync: boolean): Promise<void>;
+  function updateRecipes(): Promise<void>;
 
   function forceEnroll(recipe: object, branchSlug: string): Promise<boolean>;
 

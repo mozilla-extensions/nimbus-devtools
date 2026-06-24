@@ -181,9 +181,14 @@ var nimbus = class extends ExtensionAPI {
 
           async getCurrentCollection() {
             try {
-              return Services.prefs.getStringPref(
-                "messaging-system.rsexperimentloader.collection_id",
-              );
+              return {
+                prefValue: Services.prefs.getStringPref(
+                  "messaging-system.rsexperimentloader.collection_id",
+                ),
+                cachedValue:
+                  RemoteSettingsExperimentLoader.remoteSettingsClients
+                    .experiments.collectionName,
+              };
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));
@@ -307,11 +312,9 @@ var nimbus = class extends ExtensionAPI {
             return targetingParameters;
           },
 
-          async updateRecipes(forceSync) {
+          async updateRecipes() {
             try {
-              await RemoteSettingsExperimentLoader.updateRecipes("devtools", {
-                forceSync,
-              });
+              await RemoteSettingsExperimentLoader.updateRecipes("devtools");
             } catch (error) {
               console.error(error);
               throw new ExtensionError(String(error));

@@ -18,7 +18,7 @@ import NavigationBar from "./components/NavigationBar";
 import Sidebar from "./components/Sidebar";
 import RecipeEnrollmentPage from "./components/RecipeEnrollmentPage";
 import FeatureConfigPage from "./components/FeatureConfigPage";
-import SettingsPage from "./components/SettingsPage";
+import ExperimentLoaderPage from "./components/ExperimentLoaderPage";
 import JEXLDebuggerPage from "./components/JEXLDebuggerPage";
 import ExperimentBrowserPage from "./components/ExperimentBrowserPage";
 import ExperimentStorePage from "./components/ExperimentStorePage";
@@ -70,7 +70,10 @@ const App = () => {
                 path="/experiment-browser"
                 element={<ExperimentBrowserPage />}
               />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route
+                path="/experiment-loader"
+                element={<ExperimentLoaderPage />}
+              />
             </Routes>
           </Container>
           <Toasts />

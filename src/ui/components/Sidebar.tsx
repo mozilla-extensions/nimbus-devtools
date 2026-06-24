@@ -11,7 +11,7 @@ const links = [
   { to: "/jexl-debugger", text: "JEXL Debugger" },
   { to: "/experiment-store", text: "Experiment Store" },
   { to: "/experiment-browser", text: "Experiment Browser" },
-  { to: "/settings", text: "Settings" },
+  { to: "/experiment-loader", text: "Experiment Loader" },
 ];
 
 const Sidebar: FC = () => {
