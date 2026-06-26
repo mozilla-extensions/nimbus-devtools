@@ -155,7 +155,7 @@ declare namespace browser.experiments.nimbus {
 
   function setCollection(collectionId: string): Promise<void>;
 
-  function evaluateJEXL(expression: string, context: object): Promise<object>;
+  function evaluateJEXL(expression: string, context: object): Promise<unknown>;
 
   function getClientContext(): Promise<object>;
 
