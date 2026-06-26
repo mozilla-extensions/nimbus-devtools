@@ -323,6 +323,7 @@ var nimbus = class extends ExtensionAPI {
 
             return {
               attrs: Object.keys(TargetingContextRecorder.ATTRIBUTE_TRANSFORMS),
+              prefs: Object.keys(TargetingContextRecorder.PREFS),
               values,
             };
           },

@@ -139,6 +139,7 @@ type CurrentCollection = {
 type ClientContextValue = object | string | boolean | number | Date | undefined;
 type ClientContext = {
   attrs: string[];
+  prefs: string[];
   values: Record<string, ClientContextValue>;
 };
 declare namespace browser.experiments.nimbus {

@@ -1,6 +1,6 @@
 import { elements as baseGrammar } from "mozjexl/lib/grammar";
 import Lexer from "mozjexl/lib/Lexer";
-import Parser, { ASTNode } from "mozjexl/lib/parser/Parser";
+import Parser, { ASTNode, Identifier } from "mozjexl/lib/parser/Parser";
 
 const grammar = {
   ...baseGrammar,
@@ -19,6 +19,16 @@ const grammar = {
   },
 };
 
+type DebugContext = {
+  falseExprs: string[];
+  attrs: Set<string>;
+  prefs: Set<string>;
+};
+
+export type DebugJexlResult = DebugContext & {
+  value: string;
+};
+
 /**
  * Evaluates a JEXL expression within a given context.
  *
@@ -27,44 +37,50 @@ const grammar = {
  *
  * @returns The result of the evaluation as a string.
  */
-export async function evaluateJexl(
+export async function debugJexl(
   expression: string,
   context: object = {},
-): Promise<string> {
+): Promise<DebugJexlResult> {
   if (!expression.trim()) {
     throw new Error("Empty expression");
   }
 
-  const finalResult = await evaluateExpression(expression, context);
+  const value = await evaluateExpression(expression, context);
 
   const lexer = new Lexer(grammar);
   const parser = new Parser(grammar);
 
   parser.addTokens(lexer.tokenize(expression));
+
+  const debugCtx = {
+    falseExprs: [],
+    attrs: new Set(),
+    prefs: new Set(),
+  } as DebugContext;
+
   const ast = parser.complete();
-  const falseParts: string[] = [];
 
-  await traverseAst(ast, context, falseParts);
+  await collectFalseExprs(ast, context, debugCtx.falseExprs);
+  collectAttrsAndPrefs(ast, debugCtx);
 
-  const finalResultStr =
-    typeof finalResult === "undefined"
-      ? "undefined"
-      : typeof finalResult === "string"
-        ? quoteString(finalResult)
-        : JSON.stringify(finalResult, null, 2);
-
-  const falsePartsStr =
-    finalResult === false ? `\n\nFalse Parts:\n${falseParts.join("\n")}` : "";
-  return `${finalResultStr}${falsePartsStr}`;
+  return {
+    ...debugCtx,
+    value:
+      typeof value === "undefined"
+        ? "undefined"
+        : typeof value === "string"
+          ? quoteString(value)
+          : JSON.stringify(value, null, 2),
+  };
 }
 
 /**
- * Evaluates a JEXL expression using the browser's Nimbus API.
+ * Debug a JEXL expression using the browser's Nimbus API.
  *
  * @param expression - The JEXL expression to evaluate.
  * @param context - The context in which to evaluate the expression.
  *
- * @returns The result of the evaluation.
+ * @returns Debugging information about the expression.
  */
 async function evaluateExpression(
   expression: string,
@@ -86,19 +102,15 @@ async function evaluateExpression(
  *
  * @param ast The AST node to traverse.
  * @param context The context in which to evaluate the expressions.
- * @param falseParts An array to collect expressions that evaluate to false.
+ * @param falseExprs An array to collect expressions that evaluate to false.
  *
  * @returns The result of the traversal.
  */
-async function traverseAst(
+async function collectFalseExprs(
   ast: ASTNode,
   context: object,
-  falseParts: string[],
+  falseExprs: string[],
 ): Promise<unknown> {
-  if (!ast) {
-    return true;
-  }
-
   const subExpr = getExpression(ast);
   const result = await evaluateExpression(subExpr, context);
 
@@ -113,13 +125,13 @@ async function traverseAst(
     );
 
     if (result === false && leftResult !== false && rightResult !== false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
     } else {
       if (ast.left) {
-        await traverseAst(ast.left, context, falseParts);
+        await collectFalseExprs(ast.left, context, falseExprs);
       }
       if (ast.right) {
-        await traverseAst(ast.right, context, falseParts);
+        await collectFalseExprs(ast.right, context, falseExprs);
       }
     }
   } else if (ast.type === "UnaryExpression") {
@@ -128,54 +140,138 @@ async function traverseAst(
       context,
     );
     if (result === false && rightResult !== false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
       if (ast.right) {
-        await traverseAst(ast.right, context, falseParts);
+        await collectFalseExprs(ast.right, context, falseExprs);
       }
     } else {
       if (ast.right) {
-        await traverseAst(ast.right, context, falseParts);
+        await collectFalseExprs(ast.right, context, falseExprs);
       }
     }
   } else if (ast.type === "Transform") {
     if (result === false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
     } else {
       if (ast.subject) {
-        await traverseAst(ast.subject, context, falseParts);
+        await collectFalseExprs(ast.subject, context, falseExprs);
       }
       if (ast.args) {
         for (const arg of ast.args) {
-          await traverseAst(arg, context, falseParts);
+          await collectFalseExprs(arg, context, falseExprs);
         }
       }
     }
   } else if (ast.type === "FilterExpression") {
     if (result === false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
     } else {
       if (ast.subject) {
-        await traverseAst(ast.subject, context, falseParts);
+        await collectFalseExprs(ast.subject, context, falseExprs);
       }
       if (ast.expr) {
-        await traverseAst(ast.expr, context, falseParts);
+        await collectFalseExprs(ast.expr, context, falseExprs);
       }
     }
   } else if (ast.type === "Literal" || ast.type === "Identifier") {
     if (result === false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
     }
   } else if (ast.type === "ObjectLiteral") {
     if (result === false) {
-      falseParts.push(subExpr);
+      falseExprs.push(subExpr);
     } else {
       for (const key in ast.value) {
-        await traverseAst(ast.value[key], context, falseParts);
+        await collectFalseExprs(ast.value[key], context, falseExprs);
       }
     }
   }
 
   return result;
+}
+
+function collectAttrsAndPrefs(ast: ASTNode, debugCtx: DebugContext) {
+  switch (ast.type) {
+    case "BinaryExpression":
+    case "LogicalExpression":
+      collectAttrsAndPrefs(ast.left, debugCtx);
+      collectAttrsAndPrefs(ast.right, debugCtx);
+      break;
+
+    case "UnaryExpression":
+      collectAttrsAndPrefs(ast.right, debugCtx);
+      break;
+
+    case "Transform":
+      if (
+        ast.name === "preferenceValue" &&
+        ast.subject.type === "Literal" &&
+        typeof ast.subject.value === "string"
+      ) {
+        debugCtx.prefs.add(ast.subject.value);
+      } else {
+        collectAttrsAndPrefs(ast.subject, debugCtx);
+      }
+      break;
+
+    case "FilterExpression":
+      collectAttrsAndPrefs(ast.expr, debugCtx);
+      collectAttrsAndPrefs(ast.subject, debugCtx);
+      break;
+
+    case "Identifier":
+      {
+        const attr = getRootAttribute(ast);
+        if (attr) {
+          debugCtx.attrs.add(attr);
+        }
+      }
+      break;
+
+    case "ObjectLiteral":
+      for (const valueNode of Object.values(ast.value)) {
+        collectAttrsAndPrefs(valueNode, debugCtx);
+      }
+      break;
+
+    case "ArrayLiteral":
+      for (const itemNode of ast.value) {
+        collectAttrsAndPrefs(itemNode, debugCtx);
+      }
+      break;
+
+    case "Literal":
+      break;
+
+    default:
+      // TypeScript correctly deduces `ast: never`, so we have to re-cast it to an
+      // ASTNode to print this error.
+      throw new TypeError(`Unexpected AST node type ${(ast as ASTNode).type}`);
+  }
+}
+
+/**
+ * Return the root attribute of a given indentifier, if it exists.
+ *
+ * For example, for the identifier "foo.bar.baz", this will return "foo".
+ *
+ * However, for an identifier on, e.g., an object or array literal, this will
+ * return null.
+ *
+ * @param ast The AST node for the identifier.
+ *
+ * @returns The root identifier
+ * */
+function getRootAttribute(ast: Identifier): string | null {
+  if (!ast.from) {
+    return ast.value;
+  }
+
+  if (ast.from.type === "Identifier") {
+    return getRootAttribute(ast.from);
+  }
+
+  return null;
 }
 
 /**

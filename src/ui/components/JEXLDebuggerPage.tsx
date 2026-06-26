@@ -17,11 +17,12 @@ import {
   Tooltip,
   OverlayTrigger,
   TooltipProps,
+  Alert,
 } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 
 import { useToastsContext } from "../hooks/useToasts";
-import { evaluateJexl } from "../jexlParser";
+import { debugJexl, DebugJexlResult } from "../jexlParser";
 import { debounce } from "../utils/functional";
 
 type FieldType = "object" | "string" | "boolean" | "number" | "Date";
@@ -148,6 +149,10 @@ type JEXLDebuggerPageState = {
   jexlExpression?: string;
 };
 
+type EvalState =
+  | ({ ok: true } & DebugJexlResult)
+  | { ok: false; error: string };
+
 const JEXLDebuggerPage: FC = () => {
   const mounted = useRef<boolean>(false);
   const { state: locationState } = useLocation() as {
@@ -162,7 +167,7 @@ const JEXLDebuggerPage: FC = () => {
   const [jexlExpression, setJexlExpression] = useState(
     locationState?.jexlExpression ?? "",
   );
-  const [output, setOutput] = useState("");
+  const [evalResult, setEvalResult] = useState<EvalState | null>(null);
 
   const fetchClientContext = useCallback(async () => {
     await browser.experiments.nimbus.getClientContext().then(
@@ -221,20 +226,19 @@ const JEXLDebuggerPage: FC = () => {
   );
 
   const evaluateExpression = useCallback(() => {
-    evaluateJexl(jexlExpression, {
+    debugJexl(jexlExpression, {
       ...clientContext?.values,
       ...contextOverrides,
     }).then(
-      (result) => setOutput(result),
+      (result) => setEvalResult({ ...result, ok: true }),
       (error) => {
-        setOutput("Evaluation error");
-        addToast({
-          message: `Error evaluating expression: ${(error as Error).message ?? String(error)}`,
-          variant: "danger",
+        setEvalResult({
+          error: error instanceof Error ? error.message : String(error),
+          ok: false,
         });
       },
     );
-  }, [jexlExpression, contextOverrides, clientContext, addToast]);
+  }, [jexlExpression, contextOverrides, clientContext]);
 
   const parseAndSetContext = useMemo(() => {
     return debounce((key: string, value: string, isNumber: boolean) => {
@@ -319,6 +323,30 @@ const JEXLDebuggerPage: FC = () => {
     mounted.current = true;
   }, [locationState?.jexlExpression, evaluateExpression]);
 
+  const { unreportedAttrs, unreportedPrefs } = useMemo(() => {
+    const unreportedAttrs: string[] = [];
+    const unreportedPrefs: string[] = [];
+
+    if (evalResult?.ok && clientContext) {
+      unreportedAttrs.push(
+        ...Array.from(evalResult.attrs.values()).filter(
+          (attr) => !clientContext.attrs.includes(attr),
+        ),
+      );
+
+      unreportedPrefs.push(
+        ...Array.from(evalResult.prefs.values()).filter(
+          (pref) => !clientContext.prefs.includes(pref),
+        ),
+      );
+    }
+
+    return {
+      unreportedAttrs: unreportedAttrs.length ? unreportedAttrs : null,
+      unreportedPrefs: unreportedPrefs.length ? unreportedPrefs : null,
+    };
+  }, [evalResult, clientContext]);
+
   return (
     <Container className="main-content">
       <Row className="justify-content-start pb-2 px-2 pt-3">
@@ -343,8 +371,65 @@ const JEXLDebuggerPage: FC = () => {
       <hr className="section-line mx-2 mb-2 mt-1" />
       <Row className="justify-content-start p-2">
         <Col>
+          {unreportedAttrs && (
+            <Alert variant="warning">
+              <Alert.Heading>
+                Targeting Expression includes Unreported Attributes
+              </Alert.Heading>
+              <p>
+                This targeting expression includes attributes that are not
+                reported in Nimbus targeting context telemetry and are not
+                indexed by Experimenter:
+              </p>
+              <ul>
+                {unreportedAttrs.map((attr) => (
+                  <li key={attr}>
+                    <code>{attr}</code>
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+          {unreportedPrefs && (
+            <Alert variant="warning">
+              <Alert.Heading>
+                Targeting Expression includes Unreported Prefs
+              </Alert.Heading>
+              <p>
+                This targeting expression includes prefs that are not reported
+                in Nimbus targeting context telemetry and are not indexed by
+                Experimenter:
+              </p>
+              <ul>
+                {unreportedPrefs.map((pref) => (
+                  <li key={pref}>
+                    <code>{pref}</code>
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          )}
           <h2 className="primary-fg fs-4 mb-3">Output</h2>
-          <pre className="fs-6 mb-3">{output}</pre>
+          {evalResult ? (
+            evalResult.ok ? (
+              <pre className="fs-6 mb-3">{evalResult.value}</pre>
+            ) : (
+              <p>Could not evaluate JEXL: {evalResult.error}</p>
+            )
+          ) : null}
+          {evalResult?.ok && evalResult.falseExprs.length > 0 ? (
+            <>
+              <h3 className="primary-fg fs-5">False sub-expressions</h3>
+              <p>The following sub-expressions evaluated to false:</p>
+              <ul>
+                {evalResult.falseExprs.map((value, i) => (
+                  <li key={i} className="font-monospace">
+                    {value}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </Col>
       </Row>
       <hr className="section-line mx-2 mb-2 mt-0" />
