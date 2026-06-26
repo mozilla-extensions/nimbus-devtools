@@ -223,16 +223,6 @@ function getExpression(ast: ASTNode): string {
     const entries = Object.entries(ast.value);
     const objectExpr = entries.map(([key, value]) => {
       const valueExpr = getExpression(value);
-      if (value.type === "ObjectLiteral") {
-        const nestedEntries = Object.entries(value.value);
-        const nestedObjectExpr = nestedEntries.map(
-          ([nestedKey, nestedValue]) => {
-            const nestedValueExpr = getExpression(nestedValue);
-            return `${nestedKey}: ${nestedValueExpr}`;
-          },
-        );
-        return `${key}: { ${nestedObjectExpr.join(", ")} }`;
-      }
       return `${key}: ${valueExpr}`;
     });
     return `{ ${objectExpr.join(", ")} }`;
