@@ -1,6 +1,6 @@
 import { elements as baseGrammar } from "mozjexl/lib/grammar";
 import Lexer from "mozjexl/lib/Lexer";
-import Parser, { ASTNode, Identifier } from "mozjexl/lib/parser/Parser";
+import Parser, { ASTNode } from "mozjexl/lib/parser/Parser";
 
 const grammar = {
   ...baseGrammar,
@@ -114,7 +114,7 @@ async function traverseAst(
     }
   } else if (ast.type === "UnaryExpression") {
     const rightResult = await evaluateExpression(
-      await getExpression(ast.right),
+      getExpression(ast.right),
       context,
     );
     if (result === false && rightResult !== false) {
@@ -169,20 +169,6 @@ async function traverseAst(
 }
 
 /**
- * Retrieves the full identifier string from an AST node.
- *
- * @param ast The AST node representing an identifier.
- *
- * @returns  The full identifier string.
- */
-function getFullIdentifier(ast: Identifier): string {
-  if (!ast.from) {
-    return ast.value;
-  }
-  return `${getFullIdentifier(ast.from)}.${ast.value}`;
-}
-
-/**
  * Converts an AST node to its corresponding JEXL expression string.
  *
  * @param ast The AST node to convert.
@@ -226,13 +212,16 @@ function getExpression(ast: ASTNode): string {
   } else if (ast.type === "Literal") {
     return typeof ast.value === "string" ? `'${ast.value}'` : `${ast.value}`;
   } else if (ast.type === "Identifier") {
-    return getFullIdentifier(ast);
+    if (ast.from) {
+      return getExpression(ast.from) + "." + ast.value;
+    }
+    return ast.value;
   } else if (ast.type === "ArrayLiteral") {
     const elementsExpr = ast.value.map(getExpression).join(", ");
     return `[${elementsExpr}]`;
   } else if (ast.type === "ObjectLiteral") {
     const entries = Object.entries(ast.value);
-    const objectExpr = entries.map(async ([key, value]) => {
+    const objectExpr = entries.map(([key, value]) => {
       const valueExpr = getExpression(value);
       if (value.type === "ObjectLiteral") {
         const nestedEntries = Object.entries(value.value);
