@@ -35,6 +35,8 @@ export async function evaluateJexl(
     throw new Error("Empty expression");
   }
 
+  const finalResult = await evaluateExpression(expression, context);
+
   const lexer = new Lexer(grammar);
   const parser = new Parser(grammar);
 
@@ -44,7 +46,6 @@ export async function evaluateJexl(
 
   await traverseAst(ast, context, falseParts);
 
-  const finalResult = await evaluateExpression(expression, context);
   const finalResultStr =
     typeof finalResult === "string"
       ? quoteString(finalResult)
