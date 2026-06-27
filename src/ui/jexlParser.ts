@@ -45,10 +45,14 @@ export async function evaluateJexl(
   await traverseAst(ast, context, falseParts);
 
   const finalResult = await evaluateExpression(expression, context);
-  const falsePartsStr = !finalResult
-    ? `\n\nFalse Parts:\n${falseParts.join("\n")}`
-    : "";
-  return `${JSON.stringify(finalResult, null, 2)}${falsePartsStr}`;
+  const finalResultStr =
+    typeof finalResult === "string"
+      ? quoteString(finalResult)
+      : JSON.stringify(finalResult, null, 2);
+
+  const falsePartsStr =
+    finalResult === false ? `\n\nFalse Parts:\n${falseParts.join("\n")}` : "";
+  return `${finalResultStr}${falsePartsStr}`;
 }
 
 /**
@@ -66,7 +70,10 @@ async function evaluateExpression(
   try {
     return await browser.experiments.nimbus.evaluateJEXL(expression, context);
   } catch (error) {
-    console.error(`Error evaluating part "${expression}":`, error);
+    console.error(
+      `Error evaluating expression ${quoteString(expression)}:`,
+      error,
+    );
     throw error;
   }
 }
@@ -210,7 +217,9 @@ function getExpression(ast: ASTNode): string {
     const filterExpr = getExpression(ast.expr);
     return `${subjectExpr}[${filterExpr}]`;
   } else if (ast.type === "Literal") {
-    return typeof ast.value === "string" ? `'${ast.value}'` : `${ast.value}`;
+    return typeof ast.value === "string"
+      ? quoteString(ast.value)
+      : `${ast.value}`;
   } else if (ast.type === "Identifier") {
     if (ast.from) {
       return getExpression(ast.from) + "." + ast.value;
@@ -228,4 +237,37 @@ function getExpression(ast: ASTNode): string {
     return `{ ${objectExpr.join(", ")} }`;
   }
   return "";
+}
+
+/**
+ * Quote a string so that it is re-parseable by mozjexl.
+ *
+ * @param s The string to quote.
+ *
+ * @returns A quoted version of the given string.
+ */
+function quoteString(s: string) {
+  // If the string does not include both types of quotes, it is easy to re-quote.
+  if (!s.includes(`"`)) {
+    return `"${s}"`;
+  }
+
+  if (!s.includes(`'`)) {
+    return `'${s}'`;
+  }
+
+  // However, if it does contain both types of quotes, then we must pick one and
+  // escape every unescaped instance of that quote inside `s`.
+  //
+  // A quote is unescaped if it is preceded by an even number of backslashes
+  // (including 0).
+
+  // The mozjexl lexer does not accept a string of the form `"\""`, so we need
+  // to escape all the single quotes within s and surround it with single
+  // quotes.
+  if (s.endsWith(`"`)) {
+    return `'` + s.replaceAll(/(\\\\)*'/g, `$1\\'`) + `'`;
+  }
+
+  return `"` + s.replaceAll(/(\\\\)*"/g, `$1\\"`) + `"`;
 }
