@@ -1,3 +1,7 @@
+import path from "node:path";
+import fs from "node:fs";
+
+import { includeIgnoreFile } from "@eslint/config-helpers";
 import js from "@eslint/js";
 import { defineConfig, globalIgnores } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
@@ -9,6 +13,24 @@ import globals from "globals";
 import ts from "typescript-eslint";
 
 export default defineConfig([
+  // Ignore files listed in the global .gitignore ...
+  includeIgnoreFile(path.resolve(".gitignore"), {
+    gitignoreResolution: true,
+    name: "Imported .gitignore",
+  }),
+
+  // ... as well as any .gitignores in top-level directories.
+  ...fs
+    .readdirSync(".", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.resolve(entry.name, ".gitignore"))
+    .filter((ignorePath) => fs.existsSync(ignorePath))
+    .map((ignorePath) =>
+      includeIgnoreFile(ignorePath, {
+        gitignoreResolution: true,
+        name: `Imported .gitignore (${path})`,
+      }),
+    ),
   globalIgnores(["dist/**/*", "**/eslint.config.mjs"]),
   js.configs.recommended,
   importPlugin.flatConfigs.recommended,

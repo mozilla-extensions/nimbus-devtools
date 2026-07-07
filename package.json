@@ -57,6 +57,7 @@
     "web-ext": "web-ext"
   },
   "devDependencies": {
+    "@eslint/config-helpers": "^0.6.0",
     "@eslint/js": "^9.39.2",
     "@microsoft/eslint-plugin-sdl": "^1.1.0",
     "@types/react": "^18.3.27",
