@@ -47,7 +47,9 @@ export async function evaluateJexl(
   await traverseAst(ast, context, falseParts);
 
   const finalResultStr =
-    typeof finalResult === "string"
+    typeof finalResult === "undefined"
+    ? "undefined"
+    : typeof finalResult === "string"
       ? quoteString(finalResult)
       : JSON.stringify(finalResult, null, 2);
 

@@ -14,7 +14,7 @@ import { useToastsContext } from "../hooks/useToasts";
 import { evaluateJexl } from "../jexlParser";
 import { debounce } from "../utils/functional";
 
-type ContextValue = object | string | boolean | number | Date;
+type ContextValue = object | string | boolean | number | Date | undefined;
 type FieldType = "object" | "string" | "boolean" | "number" | "Date";
 type FormDataValue = string | boolean;
 
@@ -44,6 +44,8 @@ const getFieldType = (value: ContextValue): FieldType => {
       } else {
         return "object";
       }
+    case "undefined":
+      return "object";
   }
 };
 
@@ -128,6 +130,7 @@ function ContextField<TValue extends FormDataValue>({
       );
 
     default:
+      console.error(`Unexpected fieldType: ${fieldType} for ${contextKey}`);
       return null;
   }
 }
@@ -183,7 +186,11 @@ const JEXLDebuggerPage: FC = () => {
                 formValue = (value as Date).toISOString().slice(0, 19);
                 break;
               case "object":
-                formValue = JSON.stringify(value, null, 2);
+                if (typeof value === "undefined") {
+                  formValue = "undefined";
+                } else {
+                  formValue = JSON.stringify(value, null, 2);
+                }
                 break;
             }
             return [key, formValue];
@@ -246,7 +253,10 @@ const JEXLDebuggerPage: FC = () => {
         }
       } else {
         try {
-          const parsedValue = JSON.parse(value) as ContextValue;
+          const parsedValue =
+            value.trim() === "undefined"
+              ? undefined
+              : (JSON.parse(value) as ContextValue);
           setModifiedContext((prevContext) => ({
             ...prevContext,
             [key]: parsedValue,
