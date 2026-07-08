@@ -63,8 +63,9 @@ tasks:
                       else: ${head_branch}
               in:
                   $if: >
-                      tasks_for == "github-push" && branch == "main"   
-                      || tasks_for in ["github-pull-request", "action", "cron"]
+                      tasks_for == "github-push" && branch == "main"
+                      || (tasks_for == "github-pull-request" && event.action in ["opened", "reopened", "synchronize"])
+                      || tasks_for in ["action", "cron"]
                   then:
                       $let:
                           level: 1
