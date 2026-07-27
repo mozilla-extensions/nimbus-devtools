@@ -388,6 +388,14 @@ const JEXLDebuggerPage: FC = () => {
                   </li>
                 ))}
               </ul>
+              <p>
+                If you need to use these attributes in targeting, please follow
+                these{" "}
+                <a href="https://experimenter.info/platform-guides/desktop/targeting/#adding-new-targeting-options">
+                  instructions
+                </a>
+                .
+              </p>
             </Alert>
           )}
           {unreportedPrefs && (
@@ -407,6 +415,13 @@ const JEXLDebuggerPage: FC = () => {
                   </li>
                 ))}
               </ul>
+              <p>
+                If you need to use these prefs in targeting, please follow these{" "}
+                <a href="https://experimenter.info/platform-guides/desktop/targeting/#adding-new-targeting-options">
+                  instructions
+                </a>
+                .
+              </p>
             </Alert>
           )}
           <h2 className="primary-fg fs-4 mb-3">Output</h2>
