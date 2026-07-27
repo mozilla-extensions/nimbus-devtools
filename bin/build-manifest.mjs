@@ -16,6 +16,8 @@ const REPO_ROOT = path.resolve(BIN_DIR, "..");
 const SRC_DIR = path.join(REPO_ROOT, "src");
 const DIST_DIR = path.join(REPO_ROOT, "dist");
 
+const PACKAGE_JSON_PATH = path.join(REPO_ROOT, "package.json");
+
 const MANIFEST_FILENAME = "manifest.json";
 const MANIFEST_PATH = path.join(SRC_DIR, MANIFEST_FILENAME);
 const DIST_MANIFEST_PATH = path.join(DIST_DIR, MANIFEST_FILENAME);
@@ -40,21 +42,30 @@ function watch() {
   makeWatcher();
 }
 
+function getPackageVersion() {
+  const content = fs.readFileSync(PACKAGE_JSON_PATH, { encoding: "utf-8" });
+  const packageJson = JSON.parse(content);
+
+  return packageJson.version;
+}
+
 function build({ dev = false } = {}) {
-  for (const [srcFile, dstFile] of buildFileMap({ includeManifest: !dev })) {
+  for (const [srcFile, dstFile] of buildFileMap({ includeManifest: false })) {
     copyFileSync(srcFile, dstFile);
   }
 
-  if (dev) {
-    const content = fs.readFileSync(MANIFEST_PATH, { encoding: "utf-8" });
-    const manifest = JSON.parse(content);
+  const content = fs.readFileSync(MANIFEST_PATH, { encoding: "utf-8" });
+  const manifest = JSON.parse(content);
 
+  manifest.version = getPackageVersion();
+
+  if (dev) {
     for (const script of manifest.content_scripts) {
       script.matches.push("http://localhost/*");
     }
-
-    fs.writeFileSync(DIST_MANIFEST_PATH, JSON.stringify(manifest));
   }
+
+  fs.writeFileSync(DIST_MANIFEST_PATH, JSON.stringify(manifest));
 }
 
 function getTargetPath(srcDir, destDir, fileName) {
