@@ -191,7 +191,7 @@ class ExperimenterIntegration {
             );
 
             if (result.errors?.length) {
-              if (!result.messageGroups.length) {
+              if (!result.messageGroups?.length) {
                 e.preventDefault();
               }
 
