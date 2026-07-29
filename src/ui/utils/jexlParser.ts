@@ -1,6 +1,6 @@
 import { elements as baseGrammar } from "mozjexl/lib/grammar";
 import Lexer from "mozjexl/lib/Lexer";
-import Parser, { ASTNode, Identifier } from "mozjexl/lib/parser/Parser";
+import Parser, { ASTNode } from "mozjexl/lib/parser/Parser";
 
 const grammar = {
   ...baseGrammar,
@@ -215,11 +215,10 @@ function collectAttrsAndPrefs(ast: ASTNode, debugCtx: DebugContext) {
       break;
 
     case "Identifier":
-      {
-        const attr = getRootAttribute(ast);
-        if (attr) {
-          debugCtx.attrs.add(attr);
-        }
+      if (!ast.from) {
+        debugCtx.attrs.add(ast.value);
+      } else {
+        collectAttrsAndPrefs(ast.from, debugCtx);
       }
       break;
 
@@ -243,30 +242,6 @@ function collectAttrsAndPrefs(ast: ASTNode, debugCtx: DebugContext) {
       // ASTNode to print this error.
       throw new TypeError(`Unexpected AST node type ${(ast as ASTNode).type}`);
   }
-}
-
-/**
- * Return the root attribute of a given indentifier, if it exists.
- *
- * For example, for the identifier "foo.bar.baz", this will return "foo".
- *
- * However, for an identifier on, e.g., an object or array literal, this will
- * return null.
- *
- * @param ast The AST node for the identifier.
- *
- * @returns The root identifier
- * */
-function getRootAttribute(ast: Identifier): string | null {
-  if (!ast.from) {
-    return ast.value;
-  }
-
-  if (ast.from.type === "Identifier") {
-    return getRootAttribute(ast.from);
-  }
-
-  return null;
 }
 
 /**

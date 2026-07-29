@@ -105,7 +105,6 @@ describe("debugJexl", () => {
         f: { g: [2, 3, 4] },
       }),
     ).toEqual(new Set(["d", "f"]));
-    // TODO(#251): This should be { x, y, d, f }
     expect(
       await collectAttrs("x && y.z && ((d.e intersect f.g).length > 0)", {
         x: true,
@@ -113,7 +112,7 @@ describe("debugJexl", () => {
         d: { e: [1, 2, 3] },
         f: { g: [2, 3, 4] },
       }),
-    ).toEqual(new Set(["x", "y"]));
+    ).toEqual(new Set(["x", "y", "d", "f"]));
     // TODO(#252): This should not contain foo.
     expect(
       await collectAttrs("xs[.foo == 1]", { xs: [{ foo: 1 }, { foo: 2 }] }),
