@@ -3,6 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+declare module "mozjexl" {
+  export class Jexl {
+    addBinaryOp(
+      op: string,
+      precedence: number,
+      impl: (a: unknown, b: unknown) => unknown,
+    ): void;
+    addTransforms(transforms: Record<string, (a: unknown) => unknown>): void;
+    eval(expr: string, context: Record<string, unknown>): unknown;
+  }
+}
+
 declare module "mozjexl/lib/grammar" {
   export type GrammarItem = {
     type: string;

@@ -47,18 +47,13 @@ export async function debugJexl(
 
   const value = await evaluateExpression(expression, context);
 
-  const lexer = new Lexer(grammar);
-  const parser = new Parser(grammar);
-
-  parser.addTokens(lexer.tokenize(expression));
-
   const debugCtx = {
     falseExprs: [],
     attrs: new Set(),
     prefs: new Set(),
-  } as DebugContext;
+  } satisfies DebugContext;
 
-  const ast = parser.complete();
+  const ast = parseJexl(expression);
 
   await collectFalseExprs(ast, context, debugCtx.falseExprs);
   collectAttrsAndPrefs(ast, debugCtx);
@@ -82,7 +77,7 @@ export async function debugJexl(
  *
  * @returns Debugging information about the expression.
  */
-async function evaluateExpression(
+export async function evaluateExpression(
   expression: string,
   context: object,
 ): Promise<unknown> {
@@ -281,7 +276,7 @@ function getRootAttribute(ast: Identifier): string | null {
  *
  * @returns The JEXL expression string.
  */
-function getExpression(ast: ASTNode): string {
+export function getExpression(ast: ASTNode): string {
   if (!ast) {
     return "";
   }
@@ -338,6 +333,15 @@ function getExpression(ast: ASTNode): string {
   return "";
 }
 
+export function parseJexl(s: string): ASTNode {
+  const lexer = new Lexer(grammar);
+  const parser = new Parser(grammar);
+
+  parser.addTokens(lexer.tokenize(s));
+
+  return parser.complete();
+}
+
 /**
  * Quote a string so that it is re-parseable by mozjexl.
  *
@@ -345,7 +349,7 @@ function getExpression(ast: ASTNode): string {
  *
  * @returns A quoted version of the given string.
  */
-function quoteString(s: string) {
+export function quoteString(s: string) {
   // If the string does not include both types of quotes, it is easy to re-quote.
   if (!s.includes(`"`)) {
     return `"${s}"`;

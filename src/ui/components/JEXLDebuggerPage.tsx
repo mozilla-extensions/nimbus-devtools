@@ -22,7 +22,7 @@ import {
 import { useLocation } from "react-router-dom";
 
 import { useToastsContext } from "../hooks/useToasts";
-import { debugJexl, DebugJexlResult } from "../jexlParser";
+import { debugJexl, DebugJexlResult } from "../utils/jexlParser";
 import { debounce } from "../utils/functional";
 
 type FieldType = "object" | "string" | "boolean" | "number" | "Date";
