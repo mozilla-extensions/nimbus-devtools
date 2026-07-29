@@ -79,13 +79,12 @@ describe("debugJexl", () => {
       await collectFalseExprs("false && xs[.x == 0]", {
         xs: [{ x: 0, v: false }],
       }),
-    ).toEqual(["false", "x == 0"]);
-    // TODO(#256): `xs[.x == 0].v` should be collected.
+    ).toEqual(["false", ".x == 0"]);
     expect(
       await collectFalseExprs("false && xs[.x == 0].v", {
         xs: [{ x: 0, v: false }],
       }),
-    ).toEqual(["false"]);
+    ).toEqual(["false", "xs[.x == 0].v"]);
   });
 
   test("collects prefs", async () => {
@@ -150,8 +149,11 @@ describe("getExpression", () => {
 
   test("filter expressions", () => {
     expect(roundTripExpression("xs[0]")).toEqual("xs[0]");
-    // TODO(#254): This should round-trip.
-    expect(roundTripExpression("xs[.x == 1]")).toEqual("xs[x == 1]");
+    expect(roundTripExpression("xs[.x.y.z == 1]")).toEqual("xs[.x.y.z == 1]");
+    expect(roundTripExpression("xs[.x == 1]")).toEqual("xs[.x == 1]");
+    expect(roundTripExpression("xs[.x == 1 && .y == 2]")).toEqual(
+      "xs[(.x == 1) && (.y == 2)]",
+    );
   });
 
   test("literals", () => {

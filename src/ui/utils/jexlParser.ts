@@ -291,8 +291,11 @@ export function getExpression(ast: ASTNode): string {
   } else if (ast.type === "Identifier") {
     if (ast.from) {
       return getExpression(ast.from) + "." + ast.value;
+    } else if (ast.relative) {
+      return `.${ast.value}`;
+    } else {
+      return ast.value;
     }
-    return ast.value;
   } else if (ast.type === "ArrayLiteral") {
     const elementsExpr = ast.value.map(getExpression).join(", ");
     return `[${elementsExpr}]`;

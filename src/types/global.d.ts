@@ -88,6 +88,7 @@ declare module "mozjexl/lib/parser/Parser" {
     type: "Identifier";
     value: string;
     from?: ASTNode;
+    relative?: boolean;
   };
 
   type ArrayLiteral = {
