@@ -160,13 +160,6 @@ async function collectFalseExprs(
   } else if (ast.type === "FilterExpression") {
     if (result === false) {
       falseExprs.push(subExpr);
-    } else {
-      if (ast.subject) {
-        await collectFalseExprs(ast.subject, context, falseExprs);
-      }
-      if (ast.expr) {
-        await collectFalseExprs(ast.expr, context, falseExprs);
-      }
     }
   } else if (ast.type === "Literal" || ast.type === "Identifier") {
     if (result === false) {

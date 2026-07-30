@@ -74,12 +74,11 @@ describe("debugJexl", () => {
       "!(true)",
     ]);
     expect(await collectFalseExprs("x", { x: false })).toEqual(["x"]);
-    // TODO(#253): x == 0 should not be collected
     expect(
       await collectFalseExprs("false && xs[.x == 0]", {
         xs: [{ x: 0, v: false }],
       }),
-    ).toEqual(["false", ".x == 0"]);
+    ).toEqual(["false"]);
     expect(
       await collectFalseExprs("false && xs[.x == 0].v", {
         xs: [{ x: 0, v: false }],
