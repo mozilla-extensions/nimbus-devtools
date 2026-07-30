@@ -84,7 +84,7 @@ describe("debugJexl", () => {
       await collectFalseExprs("false && xs[.x == 0].v", {
         xs: [{ x: 0, v: false }],
       }),
-    ).toEqual(["false", "xs[.x == 0].v"]);
+    ).toEqual(["false", "(xs[.x == 0]).v"]);
   });
 
   test("collects prefs", async () => {
@@ -169,9 +169,8 @@ describe("getExpression", () => {
     expect(roundTripExpression("x")).toEqual("x");
     expect(roundTripExpression("x.y")).toEqual("x.y");
     expect(roundTripExpression("x.y.z")).toEqual("x.y.z");
-    // TODO(#255): This should round-trip.
     expect(roundTripExpression("(a intersect b).length")).toEqual(
-      "a intersect b.length",
+      "(a intersect b).length",
     );
   });
 

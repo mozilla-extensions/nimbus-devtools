@@ -290,7 +290,10 @@ export function getExpression(ast: ASTNode): string {
       : `${ast.value}`;
   } else if (ast.type === "Identifier") {
     if (ast.from) {
-      return getExpression(ast.from) + "." + ast.value;
+      const fromExpr = getExpression(ast.from);
+      return ast.from.type === "Identifier"
+        ? `${fromExpr}.${ast.value}`
+        : `(${fromExpr}).${ast.value}`;
     } else if (ast.relative) {
       return `.${ast.value}`;
     } else {
