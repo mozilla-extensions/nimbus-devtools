@@ -210,7 +210,6 @@ function collectAttrsAndPrefs(ast: ASTNode, debugCtx: DebugContext) {
       break;
 
     case "FilterExpression":
-      collectAttrsAndPrefs(ast.expr, debugCtx);
       collectAttrsAndPrefs(ast.subject, debugCtx);
       break;
 

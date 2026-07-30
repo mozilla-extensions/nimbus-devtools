@@ -113,10 +113,9 @@ describe("debugJexl", () => {
         f: { g: [2, 3, 4] },
       }),
     ).toEqual(new Set(["x", "y", "d", "f"]));
-    // TODO(#252): This should not contain foo.
     expect(
       await collectAttrs("xs[.foo == 1]", { xs: [{ foo: 1 }, { foo: 2 }] }),
-    ).toEqual(new Set(["xs", "foo"]));
+    ).toEqual(new Set(["xs"]));
   });
 });
 
