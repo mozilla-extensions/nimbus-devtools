@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "nimbus-devtools@mozilla.com": {
+      "updates": [
+        {
+          "version": "0.4.20260717.121318",
+          "update_link": "https://github.com/mozilla-extensions/nimbus-devtools/releases/download/release%2Fv0.4.0/nimbus-devtools.xpi"
+        }
+      ]
+    }
+  }
+}
