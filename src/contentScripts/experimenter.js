@@ -8,19 +8,12 @@ import NimbusDevtoolsAPI from "./lib/api.js";
 const TEMPLATE_MULTI = "multi";
 
 (async function () {
-  const match = new URLPattern({ pathname: "/nimbus/:slug/:view/" }).exec(
-    document.location,
-  );
-  if (!match) {
+  const integration = getIntegration();
+  if (!integration) {
     return;
   }
 
-  const { view } = match.pathname.groups;
-  if (!["summary", "update_branches"].includes(view)) {
-    return;
-  }
-
-  const experimentMetadata = getExperimentMetadata();
+  const { experimentMetadata, page } = integration;
   if (
     !experimentMetadata ||
     experimentMetadata?.application !== "firefox-desktop"
@@ -33,30 +26,31 @@ const TEMPLATE_MULTI = "multi";
     return;
   }
 
-  const integration = new ExperimenterIntegration(
+  const experimenter = new ExperimenterIntegration(
     experimentMetadata,
     messaging,
   );
 
-  switch (view) {
+  switch (page) {
     case "summary":
-      return integration.handleSummaryPage();
+      return experimenter.handleSummaryPage();
 
-    case "update_branches":
-      return integration.handleUpdateBranchesPage();
+    case "branches":
+      return experimenter.handleUpdateBranchesPage();
+
+    case "rollout":
+      return experimenter.handleRolloutDetailPage();
   }
 })();
 
-function getExperimentMetadata() {
-  const $metadata = document.getElementById(
-    "nimbus-devtools-experiment-metadata",
-  );
-  if (!$metadata) {
-    return;
+function getIntegration() {
+  const $integration = document.getElementById("nimbus-devtools-integration");
+  if (!$integration) {
+    return null;
   }
 
   try {
-    return JSON.parse($metadata.textContent);
+    return JSON.parse($integration.textContent);
   } catch {
     return null;
   }
@@ -70,6 +64,7 @@ class ExperimenterIntegration {
     this.experimentMetadata = experimentMetadata;
     this.supportedTemplates = supportedTemplates;
     this.featureIds = featureIds;
+    this.managedControls = new WeakSet();
   }
 
   /**
@@ -79,6 +74,10 @@ class ExperimenterIntegration {
     document
       .querySelectorAll("[data-nimbus-devtools-opt-in-pane]")
       .forEach((pane) => {
+        if (this.managedControls.has(pane)) {
+          return;
+        }
+
         const devtoolsRequiredSection = pane.querySelector(
           "[data-nimbus-devtools-required]",
         );
@@ -89,6 +88,8 @@ class ExperimenterIntegration {
         if (!devtoolsRequiredSection || !branchSelector) {
           return;
         }
+
+        this.managedControls.add(pane);
 
         devtoolsRequiredSection
           .querySelector("[data-nimbus-devtools-enroll-button]")
@@ -153,6 +154,11 @@ class ExperimenterIntegration {
         container
           .querySelectorAll("[data-nimbus-devtools-debug-jexl-button]")
           .forEach((button) => {
+            if (this.managedControls.has(button)) {
+              return;
+            }
+
+            this.managedControls.add(button);
             button.addEventListener("click", () =>
               NimbusDevtoolsAPI.debugJexl(textarea.value),
             );
@@ -165,66 +171,83 @@ class ExperimenterIntegration {
    * Update the Experimenter update branches page.
    */
   handleUpdateBranchesPage() {
-    const insertControls = () => {
-      const l10nInput = document.getElementById("id_localizations");
-      const isLocalized = !!l10nInput;
-
-      document
-        .querySelectorAll("[data-nimbus-devtools-feature-editor]")
-        .forEach((editor) => {
-          if (
-            !Object.hasOwn(editor.dataset, "featureId") ||
-            !this.featureIds.includes(editor.dataset.featureId)
-          ) {
-            return;
-          }
-
-          const input = editor.querySelector("input.value-editor");
-
-          const dropdown = editor.querySelector(
-            "[data-nimbus-devtools-try-preview-dropdown]",
-          );
-          dropdown.addEventListener("show.bs.dropdown", (e) => {
-            const result = this.parseMessages(
-              input.value,
-              isLocalized ? l10nInput.value : undefined,
-            );
-
-            if (result.errors?.length) {
-              if (!result.messageGroups?.length) {
-                e.preventDefault();
-              }
-
-              for (const error of result.errors) {
-                this.createAndShowToast(`Cannot preview message: ${error}`, {
-                  classList: ["text-bg-danger"],
-                });
-              }
-            }
-
-            if (result.messageGroups) {
-              this.updateTryPreviewDropdown(
-                dropdown,
-                result.messageGroups,
-                isLocalized,
-              );
-            }
-          });
-          dropdown.classList.remove("d-none");
-        });
-    };
-
     document.body.addEventListener("htmx:afterSwap", (event) => {
       if (
         ["branches-form", "content-with-sidebar"].includes(
           event.detail.target.id,
         )
       ) {
-        insertControls();
+        this.wireFeatureEditors();
       }
     });
 
-    insertControls();
+    this.wireFeatureEditors();
+  }
+
+  handleRolloutDetailPage() {
+    const wireAll = () => {
+      this.handleSummaryPage();
+      this.wireFeatureEditors();
+    };
+
+    wireAll();
+
+    document.body.addEventListener("htmx:afterSwap", wireAll);
+  }
+
+  wireFeatureEditors() {
+    const l10nInput = document.getElementById("id_localizations");
+    const isLocalized = !!l10nInput;
+
+    document
+      .querySelectorAll("[data-nimbus-devtools-feature-editor]")
+      .forEach((editor) => {
+        if (this.managedControls.has(editor)) {
+          return;
+        }
+
+        if (
+          !Object.hasOwn(editor.dataset, "featureId") ||
+          !this.featureIds.includes(editor.dataset.featureId)
+        ) {
+          return;
+        }
+
+        this.managedControls.add(editor);
+
+        const input = editor.querySelector("input.value-editor");
+
+        const dropdown = editor.querySelector(
+          "[data-nimbus-devtools-try-preview-dropdown]",
+        );
+        dropdown.addEventListener("show.bs.dropdown", (e) => {
+          const result = this.parseMessages(
+            input.value,
+            isLocalized ? l10nInput.value : undefined,
+          );
+
+          if (result.errors?.length) {
+            if (!result.messageGroups?.length) {
+              e.preventDefault();
+            }
+
+            for (const error of result.errors) {
+              this.createAndShowToast(`Cannot preview message: ${error}`, {
+                classList: ["text-bg-danger"],
+              });
+            }
+          }
+
+          if (result.messageGroups) {
+            this.updateTryPreviewDropdown(
+              dropdown,
+              result.messageGroups,
+              isLocalized,
+            );
+          }
+        });
+        dropdown.classList.remove("d-none");
+      });
   }
 
   async forceEnroll(recipe, branchSlug) {
