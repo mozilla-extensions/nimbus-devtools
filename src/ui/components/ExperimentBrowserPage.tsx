@@ -540,7 +540,7 @@ const ExperimentBrowserPage: FC = () => {
 
   const refetchExperiments = useCallback(() => {
     setExperiments(null);
-    void fetchExperiments();
+    void fetchExperiments(true);
   }, [fetchExperiments]);
 
   useEffect(() => {
