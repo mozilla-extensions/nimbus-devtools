@@ -216,7 +216,7 @@ var nimbus = class extends ExtensionAPI {
             }
           },
 
-          async injectInactiveEnrollment(recipe, branchSlug, reason) {
+          async injectInactiveEnrollment(recipe, branchSlug, unenrollReason) {
             try {
               const existingEnrollment = ExperimentManager.store
                 .getAll()
@@ -230,7 +230,7 @@ var nimbus = class extends ExtensionAPI {
                 recipe,
                 branchSlug,
                 "rs-loader",
-                { active: false, reason },
+                { active: false, unenrollReason },
               );
               ExperimentManager.store.addEnrollment(enrollment, recipe);
             } catch (error) {
