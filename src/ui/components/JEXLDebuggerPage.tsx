@@ -154,10 +154,10 @@ type EvalState =
   | { ok: false; error: string };
 
 const JEXLDebuggerPage: FC = () => {
-  const mounted = useRef<boolean>(false);
   const { state: locationState } = useLocation() as {
     state: JEXLDebuggerPageState | null;
   };
+
   const { addToast } = useToastsContext();
   const [clientContext, setClientContext] = useState<ClientContext | null>();
   const [contextOverrides, setContextOverrides] = useState<
@@ -167,6 +167,7 @@ const JEXLDebuggerPage: FC = () => {
   const [jexlExpression, setJexlExpression] = useState(
     locationState?.jexlExpression ?? "",
   );
+  const requiresEval = useRef(!!locationState?.jexlExpression);
   const [evalResult, setEvalResult] = useState<EvalState | null>(null);
 
   const fetchClientContext = useCallback(async () => {
@@ -213,10 +214,6 @@ const JEXLDebuggerPage: FC = () => {
         }),
     );
   }, [addToast]);
-
-  useEffect(() => {
-    void fetchClientContext();
-  }, [fetchClientContext]);
 
   const handleExpressionChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -315,14 +312,6 @@ const JEXLDebuggerPage: FC = () => {
     [parseAndSetContext],
   );
 
-  useEffect(() => {
-    if (!mounted.current && locationState?.jexlExpression) {
-      evaluateExpression();
-    }
-
-    mounted.current = true;
-  }, [locationState?.jexlExpression, evaluateExpression]);
-
   const { unreportedAttrs, unreportedPrefs } = useMemo(() => {
     const unreportedAttrs: string[] = [];
     const unreportedPrefs: string[] = [];
@@ -346,6 +335,19 @@ const JEXLDebuggerPage: FC = () => {
       unreportedPrefs: unreportedPrefs.length ? unreportedPrefs : null,
     };
   }, [evalResult, clientContext]);
+
+  useEffect(() => {
+    void fetchClientContext();
+  }, [fetchClientContext]);
+
+  useEffect(() => {
+    // On the first render that we've got a valid client context attempt to
+    // evaluate the initial expression.
+    if (requiresEval.current && clientContext) {
+      requiresEval.current = false;
+      void evaluateExpression();
+    }
+  }, [clientContext, evaluateExpression]);
 
   return (
     <Container className="main-content">
