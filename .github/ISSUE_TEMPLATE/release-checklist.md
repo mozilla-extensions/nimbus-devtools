@@ -54,7 +54,19 @@ git push origin --tags
 - [ ] Once the security review has finished and the add-on is released, you can edit the new GitHub
       release. Update the release with a name (nimbus-devtools vVERSION) .
 
+- [ ] Open a new PR that updates `update.json`:
+
+  If the minimum required version of Firefox **has not changed** since the last release you can
+  replace the latest entry.
+
+  If the minimum required version of Firefox **has changed** since the last release you must add a
+  new entry to the list. This ensures that older versions of Firefox can update the addon.
+
+  Be sure to verify the add-on version: the web extension infrastructure modifies the last two
+  components of the version to include the build timestamp.
+
 - [ ] Create a milestone for the next release.
+
 - [ ] Close this issue and the milestone.
 
 [add-on-intake-form]: https://mozilla-hub.atlassian.net/wiki/spaces/FDPDT/pages/10617933/Mozilla+Add-on+Review+Requests+Intake
