@@ -36,6 +36,7 @@ git push origin --tags
   1. Submit a review request for an updated add-on
      1. Fill in the following fields:
         - **Summary**: Updated Add-on Review Request nimbus-devtools VERSION
+        - **Add-on ID**: nimbus-devtools@mozilla.com
         - **Add-on name**: nimbus-devtools
         - **Add-on version**: VERSION
         - **Specific repository commit to review and release:**
