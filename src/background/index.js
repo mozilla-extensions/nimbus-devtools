@@ -71,5 +71,5 @@ function openJexlDebugger(jexlExpression) {
   searchParams.append("view", "jexl-debugger");
   searchParams.append("jexlExpression", jexlExpression);
 
-  browser.tabs.create({ url: `./ui/index.html?${searchParams}` });
+  browser.tabs.create({ url: `./ui/index.html#/?${searchParams}` });
 }

@@ -26,7 +26,7 @@ import useToasts from "./hooks/useToasts";
 import Toasts from "./components/Toasts";
 
 const IndexRoute = () => {
-  const [searchParams] = useSearchParams(document.location.search);
+  const [searchParams] = useSearchParams();
 
   if (searchParams.get("view") === "jexl-debugger") {
     const jexlExpression = searchParams.get("jexlExpression");
