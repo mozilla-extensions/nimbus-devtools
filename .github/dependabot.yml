@@ -1,5 +1,15 @@
 version: 2
 updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+      exclude:
+        - "mozjexl"
+        - "@mozilla/nimbus-schemas"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
