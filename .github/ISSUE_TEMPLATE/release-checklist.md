@@ -19,11 +19,9 @@ Welcome Release Captain ! ⛵️
 - [ ] Check the [VERSION milestone](https://github.com/mozilla-extensions/nimbus-devtools/milestone/MILESTONE)
   - Any open issues (except this one) should be moved into a future milestone.
 - [ ] Check out the main branch: `git checkout main`
-- [ ] Check the following files have the expected version:
-  - `package.json`
-  - `web-ext-config.json`
+- [ ] Check that `package.json` has the expected version.
 
-  If they don't, update them in a separate PR.
+  If it doesn't, update it in a separate PR.
 
 - [ ] Create a tag for this release:
 
