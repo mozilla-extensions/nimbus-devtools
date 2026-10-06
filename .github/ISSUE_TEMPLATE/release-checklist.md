@@ -18,7 +18,16 @@ Welcome Release Captain ! ⛵️
 - [ ] Assign this issue to yourself
 - [ ] Check the [VERSION milestone](https://github.com/mozilla-extensions/nimbus-devtools/milestone/MILESTONE)
   - Any open issues (except this one) should be moved into a future milestone.
-- [ ] Check out the main branch: `git checkout main`
+- [ ] Check out the main branch:
+
+```sh
+# git:
+git checkout main
+
+# or, jj:
+jj new main
+```
+
 - [ ] Check that `package.json` has the expected version.
 
   If it doesn't, update it in a separate PR.
@@ -26,8 +35,13 @@ Welcome Release Captain ! ⛵️
 - [ ] Create a tag for this release:
 
 ```sh
+# git:
 git tag release/vVERSION # e.g., release/v0.1.0
 git push origin --tags
+
+# or, jj:
+jj tag set release/vVERSION -r main
+jj git push --tag release/vVERSION
 ```
 
 - [ ] Fill out the [Mozilla Add On Review Request Intake Form][add-on-intake-form]:
